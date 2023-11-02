@@ -4,7 +4,7 @@ cp ./target/save-game-backup-tool*.jar ./dist/BackupTool.jar
 cp ./BackupTool.* ./dist
 cp ./*.json ./dist
 cp ./LICENSE ./dist
-cp ./Test ./dist
+cp -r ./Test ./dist
 mv ./dist Save\ Game\ Backup\ Tool
 7z a save-game-backup-tool.zip ./Save\ Game\ Backup\ Tool
 mvn clean
