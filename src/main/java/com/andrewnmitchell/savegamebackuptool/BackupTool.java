@@ -60,7 +60,7 @@ class BackupThread extends Thread {
     }
 
     public void watchForBackups(String configPath) {
-        String stopFilePath = "./stop" + configPath.substring(configPath.lastIndexOf("/") + 1).replace(".json", "");
+        String stopFilePath = "./.stop" + configPath.substring(configPath.lastIndexOf("/") + 1).replace(".json", "");
         while (Files.notExists(Path.of(BackupWatcher.replaceLocalDotDirectory(stopFilePath))) && !disabled)
             try {
                 BackupWatcher.watchForBackups(configPath, usePrecedingInputIndicator);
