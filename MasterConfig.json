@@ -1,6 +1,7 @@
 {
     "configurations": [
-        {"name": "Bully: Scholarship Edition", "file": "Bully.json"}
+        {"name": "Bully: Scholarship Edition", "file": "Bully.json"},
+        {"name": "Second Backup Configuration Test", "file": "Test.json"}
     ],
     "default": "Bully: Scholarship Edition"
 }

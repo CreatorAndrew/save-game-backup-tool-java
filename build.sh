@@ -3,6 +3,8 @@ mkdir dist
 cp ./target/save-game-backup-tool*.jar ./dist/BackupTool.jar
 cp ./BackupTool.* ./dist
 cp ./*.json ./dist
-7z a "Save Game Backup Tool.zip" ./dist/*
+cp ./LICENSE ./dist
+mv ./dist Save\ Game\ Backup\ Tool
+7z a save-game-backup-tool.zip ./Save\ Game\ Backup\ Tool
 mvn clean
-rm -rf dist
+rm -rf Save\ Game\ Backup\ Tool

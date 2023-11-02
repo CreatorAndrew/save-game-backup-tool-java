@@ -1,7 +1,6 @@
 package com.andrewnmitchell.savegamebackuptool;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -104,7 +103,7 @@ public class BackupWatcher {
                             name = reader.nextName();
                             switch (name) {
                                 case "path": props.setPath(reader.nextString()); break;
-                                case "isAbsolute": props.setPathIsAbsolute(Boolean.parseBoolean(reader.nextString())); break;
+                                case "isAbsolute": props.setPathIsAbsolute(reader.nextBoolean()); break;
                             }
                         }
                         reader.endObject();
@@ -120,7 +119,7 @@ public class BackupWatcher {
                         name = reader.nextName();
                         switch (name) {
                             case "path": props.setPath(reader.nextString()); break;
-                            case "isAbsolute": props.setPathIsAbsolute(Boolean.parseBoolean(reader.nextString())); break;
+                            case "isAbsolute": props.setPathIsAbsolute(reader.nextBoolean()); break;
                         }
                     }
                     backupFolder = (props.getPathIsAbsolute() ? "" : (home + "/")) + props.getPath().replaceAll("\\\\", "/");
@@ -158,9 +157,13 @@ public class BackupWatcher {
             if (getUTCModifiedDate(savePath) > lastBackupTime) {
                 lastBackupTime = getUTCModifiedDate(savePath);
 
-                // Create the backup archive file
                 String backup = backupFileNamePrefix + "+" + lastBackupTime + ".zip";
-                backupArchive.compress(replaceLocalDotDirectory("./") + backup, textArea);
+                if (Files.notExists(Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup)))
+                    // Create the backup archive file
+                    backupArchive.compress(replaceLocalDotDirectory("./") + backup, textArea);
+                    if (!backupFolder.equals(replaceLocalDotDirectory("./")))
+                        Files.move(Path.of(replaceLocalDotDirectory("./") + backup), Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
+                else System.out.println(addTextToArea(backup + " already exists in " + backupFolder + ".\nBackup cancelled", textArea));
 
                 // Rewrite the JSON file
                 String configOutput = "{\n    \"searchableSavePaths\": [";
@@ -173,17 +176,7 @@ public class BackupWatcher {
                     + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
                     + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
                 Files.writeString(Path.of(configFile), configOutput);
-                
-                if (backupFolder.endsWith(".") && backupFolder.length() > 1)
-                    backupFolder = backupFolder.substring(0, backupFolder.length() - 1);
-                if (!backupFolder.equals(replaceLocalDotDirectory("./")))
-                    try {
-                        Files.move(Path.of(replaceLocalDotDirectory("./") + backup), 
-                            Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
-                    } catch (FileAlreadyExistsException exception) {
-                        System.out.println(addTextToArea(backup + " already exists in " + backupFolder + ".\nBackup cancelled", textArea));
-                        Files.delete(Path.of(replaceLocalDotDirectory("./") + backup));
-                    }
+
                 if (textArea == null) System.out.print(precedingInputIndicator);
             }
         // Sometimes on Linux, when Steam launches a game like Bully: Scholarship Edition, the path to the compatdata folder becomes briefly inaccessible.

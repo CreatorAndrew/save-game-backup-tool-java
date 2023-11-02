@@ -59,16 +59,17 @@ class BackupThread extends Thread {
         else if (configPath != null) watchForBackups(configPath);
     }
 
-    public void watchForBackups (String configPath) {
-        while (Files.notExists(Path.of(BackupWatcher.replaceLocalDotDirectory("./.stopBackupTool"))) && !disabled)
+    public void watchForBackups(String configPath) {
+        String stopFilePath = "./stop" + configPath.substring(configPath.lastIndexOf("/") + 1).replace(".json", "");
+        while (Files.notExists(Path.of(BackupWatcher.replaceLocalDotDirectory(stopFilePath))) && !disabled)
             try {
                 BackupWatcher.watchForBackups(configPath, usePrecedingInputIndicator);
             } catch (IOException exception) {
             }
-        while (Files.exists(Path.of(BackupWatcher.replaceLocalDotDirectory("./.stopBackupTool"))))
+        while (Files.exists(Path.of(BackupWatcher.replaceLocalDotDirectory(stopFilePath))))
             try {
-                Files.delete(Path.of(BackupWatcher.replaceLocalDotDirectory("./.stopBackupTool")));
-            // On Windows, when .stopBackupTool is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
+                Files.delete(Path.of(BackupWatcher.replaceLocalDotDirectory(stopFilePath)));
+            // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
             } catch (IOException exception) {
             }
     }
@@ -173,9 +174,11 @@ public class BackupTool {
                         break;
                     }
                     case "?":
-                    case "help": System.out.print("Enter in \"start\" to initialize a backup configuration." +
-                        "\nEnter in \"stop\" to suspend a backup configuration." +
-                        "\nEnter in \"exit\", \"quit\", or \"end\" to shut down this tool.\n" + BackupWatcher.precedingInputIndicator); break;
+                    case "help":
+                        System.out.print("Enter in \"start\" to initialize a backup configuration.\n" +
+                                         "Enter in \"stop\" to suspend a backup configuration.\n" +
+                                         "Enter in \"exit\", \"quit\", or \"end\" to shut down this tool.\n" + BackupWatcher.precedingInputIndicator);
+                        break;
                     case "": System.out.print(BackupWatcher.precedingInputIndicator); break;
                     default: System.out.print("Invalid command\n" + BackupWatcher.precedingInputIndicator); break;
                 }

@@ -1,0 +1,8 @@
+{
+    "searchableSavePaths": [
+        {"path": "./Test/Test.txt", "isAbsolute": true}
+    ],
+    "backupPath": {"path": "./Test Backups", "isAbsolute": true},
+    "backupFileNamePrefix": "test",
+    "lastBackupTime": 0
+}

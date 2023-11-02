@@ -45,7 +45,7 @@ public class BackupUtils {
             }
 
             zipOutputStream.closeEntry();
-            System.out.println(BackupWatcher.addTextToArea("Compression successful", textArea));
+            System.out.println(BackupWatcher.addTextToArea("Backup successful", textArea));
 
         } catch (IOException exception) {
         } finally {
