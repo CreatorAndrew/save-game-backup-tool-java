@@ -172,7 +172,7 @@ public class BackupWatcher {
                     + "\", \"isAbsolute\": \"" + savePaths.get(i).getPathIsAbsolute() + "\"}" + (i < savePaths.size() - 1 ? "," : "");
                 configOutput += "\n    ],\n    \"backupPath\": {\"path\": \""
                     + backupFolder.substring(backupFolder.contains(home + "/") ? (home + "/").length() : 0, backupFolder.length())
-                    + "\", \"isAbsolute\": \"" + (backupFolder.contains(home + "/") ? "false" : "true") + "\"},"
+                    + "\", \"isAbsolute\": " + (backupFolder.contains(home + "/") ? "false" : "true") + "},"
                     + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
                     + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
                 Files.writeString(Path.of(configFile), configOutput);
