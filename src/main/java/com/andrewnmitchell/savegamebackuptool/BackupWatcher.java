@@ -157,27 +157,29 @@ public class BackupWatcher {
             if (getUTCModifiedDate(savePath) > lastBackupTime) {
                 lastBackupTime = getUTCModifiedDate(savePath);
 
+                if (textArea == null && usePrecedingInputIndicator) System.out.println();
+
                 String backup = backupFileNamePrefix + "+" + lastBackupTime + ".zip";
-                if (Files.notExists(Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup)))
+                if (Files.notExists(Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
                     // Create the backup archive file
                     backupArchive.compress(replaceLocalDotDirectory("./") + backup, textArea);
                     if (!backupFolder.equals(replaceLocalDotDirectory("./")))
                         Files.move(Path.of(replaceLocalDotDirectory("./") + backup), Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
-                else System.out.println(addTextToArea(backup + " already exists in " + backupFolder + ".\nBackup cancelled", textArea));
+                } else System.out.println(addTextToArea(backup + " already exists in " + backupFolder + ".\nBackup cancelled", textArea));
 
                 // Rewrite the JSON file
                 String configOutput = "{\n    \"searchableSavePaths\": [";
                 for (int i = 0; i < savePaths.size(); i++)
                     configOutput += "\n        {\"path\": \"" + savePaths.get(i).getPath()
-                    + "\", \"isAbsolute\": \"" + savePaths.get(i).getPathIsAbsolute() + "\"}" + (i < savePaths.size() - 1 ? "," : "");
+                    + "\", \"isAbsolute\": " + savePaths.get(i).getPathIsAbsolute() + "}" + (i < savePaths.size() - 1 ? "," : "");
                 configOutput += "\n    ],\n    \"backupPath\": {\"path\": \""
                     + backupFolder.substring(backupFolder.contains(home + "/") ? (home + "/").length() : 0, backupFolder.length())
-                    + "\", \"isAbsolute\": " + (backupFolder.contains(home + "/") ? "false" : "true") + "},"
+                    + "\", \"isAbsolute\": " + !backupFolder.contains(home + "/") + "},"
                     + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
                     + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
                 Files.writeString(Path.of(configFile), configOutput);
 
-                if (textArea == null) System.out.print(precedingInputIndicator);
+                if (textArea == null && usePrecedingInputIndicator) System.out.print(precedingInputIndicator);
             }
         // Sometimes on Linux, when Steam launches a game like Bully: Scholarship Edition, the path to the compatdata folder becomes briefly inaccessible.
         } catch (NoSuchFileException exception) {

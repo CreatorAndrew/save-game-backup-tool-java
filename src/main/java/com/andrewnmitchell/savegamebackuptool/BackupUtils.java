@@ -26,7 +26,6 @@ public class BackupUtils {
         try {
             fileOutputStream = new FileOutputStream(zipFile);
             zipOutputStream = new ZipOutputStream(fileOutputStream);
-            System.out.println();
             System.out.print(BackupWatcher.addTextToArea("Creating backup archive: " + zipFile.substring(zipFile.lastIndexOf("/") + 1), textArea));
             System.out.println();
             FileInputStream fileInputStream = null;
