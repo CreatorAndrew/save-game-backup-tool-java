@@ -34,8 +34,8 @@ public class BackupGUI extends JFrame {
 
     public BackupGUI(ArrayList<BackupConfig> configs) {
         try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException exception) {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException exception) {
         }
 
         this.configs = configs;
@@ -69,9 +69,9 @@ public class BackupGUI extends JFrame {
         table.getColumn("Button").setCellEditor(new ButtonEditor(new JCheckBox()));
         // Make the titles of the backup configurations unselectable and uneditable
         table.getColumn("Configuration").setCellRenderer(new TableCellRenderer() {
-			@Override
-			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-				return new JLabel(value.toString());
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                return new JLabel(value.toString());
             }
         });
         table.getColumn("Configuration").setCellEditor(new TableCellEditor() {
@@ -82,38 +82,38 @@ public class BackupGUI extends JFrame {
                 return false;
             }
 
-			@Override
-			public Object getCellEditorValue() {
-				return new String(label);
-			}
+            @Override
+            public Object getCellEditorValue() {
+                return new String(label);
+            }
 
-			@Override
-			public boolean isCellEditable(EventObject anEvent) {
+            @Override
+            public boolean isCellEditable(EventObject anEvent) {
                 return false;
-			}
+            }
 
-			@Override
-			public boolean stopCellEditing() {
-				return true;
-			}
+            @Override
+            public boolean stopCellEditing() {
+                return true;
+            }
 
-			@Override
-			public void cancelCellEditing() {
-			}
+            @Override
+            public void cancelCellEditing() {
+            }
 
-			@Override
-			public void addCellEditorListener(CellEditorListener l) {
-			}
+            @Override
+            public void addCellEditorListener(CellEditorListener l) {
+            }
 
-			@Override
-			public void removeCellEditorListener(CellEditorListener l) {
-			}
+            @Override
+            public void removeCellEditorListener(CellEditorListener l) {
+            }
 
-			@Override
-			public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            @Override
+            public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
                 label = value.toString();
                 return new JLabel(label);
-			}            
+            }            
         });
         table.setDefaultRenderer(JButton.class, new ButtonRenderer());
         table.getTableHeader().setUI(null);
