@@ -26,12 +26,12 @@ public class BackupUtils {
         try {
             fileOutputStream = new FileOutputStream(zipFile);
             zipOutputStream = new ZipOutputStream(fileOutputStream);
-            System.out.print(BackupWatcher.addTextToArea("Creating backup archive: " + zipFile.substring(zipFile.lastIndexOf("/") + 1), textArea));
+            System.out.print(BackupWatchdog.addTextToArea("Creating backup archive: " + zipFile.substring(zipFile.lastIndexOf("/") + 1), textArea));
             System.out.println();
             FileInputStream fileInputStream = null;
 
             for (String file : this.fileList) {
-                System.out.println(BackupWatcher.addTextToArea("Added " + file, textArea));
+                System.out.println(BackupWatchdog.addTextToArea("Added " + file, textArea));
                 ZipEntry zipEntry = new ZipEntry(file);
                 zipOutputStream.putNextEntry(zipEntry);
                 try {
@@ -44,7 +44,7 @@ public class BackupUtils {
             }
 
             zipOutputStream.closeEntry();
-            System.out.println(BackupWatcher.addTextToArea("Backup successful", textArea));
+            System.out.println(BackupWatchdog.addTextToArea("Backup successful", textArea));
 
         } catch (IOException exception) {
         } finally {

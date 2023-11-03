@@ -37,17 +37,17 @@ class BackupConfig {
 
 class BackupThread extends Thread {
     private String configPath;
-    private BackupGUI backupGUI;
-    private boolean disabled = false, usePrecedingInputIndicator;
+    private BackupGUI gui;
+    private boolean disabled = false, usePrompt;
 
     public BackupThread(BackupGUI gui) {
-        backupGUI = gui;
-        usePrecedingInputIndicator = false;
+        this.gui = gui;
+        usePrompt = false;
     }
 
-    public BackupThread(String path, boolean usePrecedingInputIndicator) {
+    public BackupThread(String path, boolean usePrompt) {
         configPath = path;
-        this.usePrecedingInputIndicator = usePrecedingInputIndicator;
+        this.usePrompt = usePrompt;
     }
 
     public void disable() {
@@ -55,31 +55,31 @@ class BackupThread extends Thread {
     }
 
     public void run() {
-        if (backupGUI != null) watchForBackups(backupGUI);
-        else if (configPath != null) watchForBackups(configPath);
+        if (gui != null) watchdog(gui);
+        else if (configPath != null) watchdog(configPath);
     }
 
-    public void watchForBackups(String configPath) {
+    public void watchdog(String configPath) {
         String stopFilePath = "./.stop" + configPath.substring(configPath.lastIndexOf("/") + 1).replace(".json", "");
-        while (Files.notExists(Path.of(BackupWatcher.replaceLocalDotDirectory(stopFilePath))) && !disabled)
+        while (Files.notExists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))) && !disabled)
             try {
-                BackupWatcher.watchForBackups(configPath, usePrecedingInputIndicator);
+                BackupWatchdog.watchdog(configPath, usePrompt);
             } catch (IOException exception) {
             }
-        while (Files.exists(Path.of(BackupWatcher.replaceLocalDotDirectory(stopFilePath))))
+        while (Files.exists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))))
             try {
-                Files.delete(Path.of(BackupWatcher.replaceLocalDotDirectory(stopFilePath)));
+                Files.delete(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)));
             // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
             } catch (IOException exception) {
             }
     }
 
-    public void watchForBackups(BackupGUI gui) {
+    public void watchdog(BackupGUI gui) {
         while (!disabled) for (BackupConfig config : gui.configs)
             try {
                 // For some reason on Windows, without the following line, the program will be stuck.
                 System.out.print("");
-                BackupWatcher.watchForBackups(config.getPath(), gui.textArea, usePrecedingInputIndicator, gui.configsUsed[gui.configs.indexOf(config)]);
+                BackupWatchdog.watchdog(config.getPath(), gui.textArea, usePrompt, gui.configsUsed[gui.configs.indexOf(config)]);
             } catch (IOException exception) {
             }
     }
@@ -90,7 +90,7 @@ public class BackupTool {
         ArrayList<BackupThread> backupThreads = new ArrayList<BackupThread>();
         ArrayList<BackupConfig> configs = new ArrayList<BackupConfig>();
         ArrayList<String> configsUsed = new ArrayList<String>();
-        String configPath = "", defaultConfigName = "", configMasterFile = BackupWatcher.replaceLocalDotDirectory("./MasterConfig.json");
+        String configPath = "", defaultConfigName = "", configMasterFile = BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json");
 
         JsonReader reader = new JsonReader(new FileReader(configMasterFile));
         reader.beginObject();
@@ -142,7 +142,7 @@ public class BackupTool {
             if (!configPath.equals("")) {
                 backupThreads.add(new BackupThread(configPath, false));
                 backupThreads.get(backupThreads.size() - 1).start();
-            } else System.out.print("Enter in \"help\" or \"?\" for assistance.\n" + BackupWatcher.precedingInputIndicator);
+            } else System.out.print("Enter in \"help\" or \"?\" for assistance.\n" + BackupWatchdog.prompt);
             while (configPath.equals("")) {
                 String input = scanner.nextLine();
                 switch (input.toLowerCase()) {
@@ -177,16 +177,16 @@ public class BackupTool {
                     case "help":
                         System.out.print("Enter in \"start\" to initialize a backup configuration.\n" +
                                          "Enter in \"stop\" to suspend a backup configuration.\n" +
-                                         "Enter in \"exit\", \"quit\", or \"end\" to shut down this tool.\n" + BackupWatcher.precedingInputIndicator);
+                                         "Enter in \"exit\", \"quit\", or \"end\" to shut down this tool.\n" + BackupWatchdog.prompt);
                         break;
-                    case "": System.out.print(BackupWatcher.precedingInputIndicator); break;
-                    default: System.out.print("Invalid command\n" + BackupWatcher.precedingInputIndicator); break;
+                    case "": System.out.print(BackupWatchdog.prompt); break;
+                    default: System.out.print("Invalid command\n" + BackupWatchdog.prompt); break;
                 }
                 if (stopBackupTool) break;
             }
             scanner.close();
         } else {
-            BackupGUI backupGUI = new BackupGUI(configs);
+            BackupGUI gui = new BackupGUI(configs);
         }
     }
 

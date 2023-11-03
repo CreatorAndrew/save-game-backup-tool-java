@@ -42,20 +42,20 @@ class BackupSavePath {
     }
 }
 
-public class BackupWatcher {
-    private static Long getUTCModifiedDate(Path savePath) throws IOException {
+public class BackupWatchdog {
+    private static Long getModifiedDate(Path savePath) throws IOException {
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
         date.setTimeZone(TimeZone.getDefault());
         return Long.parseLong(date.format(new Date(Files.getLastModifiedTime(savePath).toMillis())));
     }
 
-    public static final String precedingInputIndicator = "> ";
+    public static final String prompt = "> ";
 
     // This method makes it so that this program treats the filesystem as relative to its own path.
     public static String replaceLocalDotDirectory(String path) {
         String newPath = path, replacement = "";
         try {
-             replacement = (BackupWatcher.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
+             replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
              replacement = replacement.substring(0, replacement.lastIndexOf("/") + 1);
         } catch (URISyntaxException exception) {
         }
@@ -72,15 +72,15 @@ public class BackupWatcher {
         return text;
     }
 
-    public static void watchForBackups(String configFile, boolean usePrecedingInputIndicator) throws IOException {
-        watchForBackups(configFile, null, usePrecedingInputIndicator);
+    public static void watchdog(String configFile, boolean usePrompt) throws IOException {
+        watchdog(configFile, null, usePrompt);
     }
 
-    public static void watchForBackups(String configFile, JTextArea textArea, boolean usePrecedingInputIndicator, boolean enabled) throws IOException {
-        if (enabled) watchForBackups(configFile, textArea, usePrecedingInputIndicator);
+    public static void watchdog(String configFile, JTextArea textArea, boolean usePrompt, boolean enabled) throws IOException {
+        if (enabled) watchdog(configFile, textArea, usePrompt);
     }
 
-    public static void watchForBackups(String configFile, JTextArea textArea, boolean usePrecedingInputIndicator) throws IOException {
+    public static void watchdog(String configFile, JTextArea textArea, boolean usePrompt) throws IOException {
         String home = System.getProperty("user.home").replaceAll("\\\\", "/"), backupFolder = "", backupFileNamePrefix = "";
 
         Long lastBackupTime = Long.parseLong("0");
@@ -154,11 +154,10 @@ public class BackupWatcher {
         if (Files.notExists(Path.of(backupFolder))) Files.createDirectories(Path.of(backupFolder));
 
         try {
-            if (getUTCModifiedDate(savePath) > lastBackupTime) {
-                lastBackupTime = getUTCModifiedDate(savePath);
+            if (getModifiedDate(savePath) > lastBackupTime) {
+                lastBackupTime = getModifiedDate(savePath);
 
-                if (textArea == null && usePrecedingInputIndicator) System.out.println();
-
+                if (textArea == null && usePrompt) System.out.println();
                 String backup = backupFileNamePrefix + "+" + lastBackupTime + ".zip";
                 if (Files.notExists(Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
                     // Create the backup archive file
@@ -179,7 +178,7 @@ public class BackupWatcher {
                     + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
                 Files.writeString(Path.of(configFile), configOutput);
 
-                if (textArea == null && usePrecedingInputIndicator) System.out.print(precedingInputIndicator);
+                if (textArea == null && usePrompt) System.out.print(prompt);
             }
         // Sometimes on Linux, when Steam launches a game like Bully: Scholarship Edition, the path to the compatdata folder becomes briefly inaccessible.
         } catch (NoSuchFileException exception) {
