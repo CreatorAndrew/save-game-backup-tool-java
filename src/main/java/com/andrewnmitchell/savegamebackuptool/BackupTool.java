@@ -210,6 +210,7 @@ public class BackupTool {
                                          "Enter in \"stop\" to suspend a backup configuration.\n" +
                                          "Enter in \"exit\", \"quit\", or \"end\" to shut down this tool.\n" + BackupWatchdog.prompt);
                         break;
+                    case "": System.out.print(BackupWatchdog.prompt); break;
                     default: System.out.print("Invalid command\n" + BackupWatchdog.prompt); break;
                 }
                 if (stopBackupTool) break;
