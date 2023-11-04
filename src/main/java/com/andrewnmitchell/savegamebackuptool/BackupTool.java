@@ -71,7 +71,7 @@ public class BackupTool {
             else if (configPath != null) watchdog(configPath, configIndex);
         }
 
-        public boolean watchdog(String configPath, int configIndex) {
+        public void watchdog(String configPath, int configIndex) {
             String stopFilePath = "./.stop" + configPath.substring(configPath.lastIndexOf("/") + 1).replace(".json", "");
             while (Files.notExists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))) && !disabled)
                 try {
@@ -85,7 +85,6 @@ public class BackupTool {
                 } catch (IOException exception) {
                 }
             removeConfig(configPath);
-            return true;
         }
 
         public void watchdog(BackupGUI gui) {
