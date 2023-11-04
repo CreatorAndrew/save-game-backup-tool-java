@@ -14,7 +14,7 @@ import java.io.FileReader;
 import com.google.gson.stream.JsonReader;
 
 class BackupSavePath {
-    private String path; 
+    private String path;
     private boolean isAbsolute;
 
     public BackupSavePath(String path, boolean isAbsolute) {

@@ -170,8 +170,8 @@ public class BackupTool {
                 configPath = args[i + 1];
                 break;
             }
-        
-        if (noGUI) { 
+
+        if (noGUI) {
             boolean stopBackupTool = false;
             Scanner scanner = new Scanner(System.in);
             if (!configPath.equals("")) {
