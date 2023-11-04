@@ -25,12 +25,12 @@ import java.awt.event.ActionListener;
 public class BackupGUI extends JFrame {
     private JScrollPane scrollPane, textScrollPane;
     private JTable table;
+    protected JTextArea textArea;
     protected JButton[] buttons;
     protected final String enableLabel = "Start", disableLabel = "Stop";
     protected final int width = 512, height = 384;
     protected ArrayList<BackupConfig> configs;
     protected boolean[] configsUsed, configsUsedInvalid;
-    protected JTextArea textArea;
 
     public BackupGUI(ArrayList<BackupConfig> configs) {
         try {
@@ -58,13 +58,12 @@ public class BackupGUI extends JFrame {
         BackupTool backupTool = new BackupTool(this);
     }
 
-    public void redrawTable() {
+    public void drawTable(DefaultTableModel tableModel) {
         Object[][] rows = new Object[configs.size()][2];
         for (int i = 0; i < configs.size(); i++) {
             rows[i][0] = configs.get(i).getName();
             rows[i][1] = buttons[i].getText();
         }
-        DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
         tableModel.setDataVector(rows, new Object[] { "Configuration", "Button" });
         table.getColumn("Button").setCellRenderer(new ButtonRenderer());
         table.getColumn("Button").setCellEditor(new ButtonEditor(new JCheckBox()));
@@ -120,69 +119,15 @@ public class BackupGUI extends JFrame {
         table.getTableHeader().setUI(null);
     }
 
+    public void updateTable() {
+        DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+        drawTable(tableModel);
+    }
+
     public void initComponents() {
-        Object[][] rows = new Object[configs.size()][2];
-        for (int i = 0; i < configs.size(); i++) {
-            rows[i][0] = configs.get(i).getName();
-            rows[i][1] = buttons[i].getText();
-        }
-
         DefaultTableModel tableModel = new DefaultTableModel();
-        tableModel.setDataVector(rows, new Object[] { "Configuration", "Button" });
-
         table = new JTable(tableModel);
-        table.getColumn("Button").setCellRenderer(new ButtonRenderer());
-        table.getColumn("Button").setCellEditor(new ButtonEditor(new JCheckBox()));
-        // Make the titles of the backup configurations unselectable and uneditable
-        table.getColumn("Configuration").setCellRenderer(new TableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                return new JLabel(value.toString());
-            }
-        });
-        table.getColumn("Configuration").setCellEditor(new TableCellEditor() {
-            String label = "";
-
-            @Override
-            public boolean shouldSelectCell(EventObject anEvent) {
-                return false;
-            }
-
-            @Override
-            public Object getCellEditorValue() {
-                return new String(label);
-            }
-
-            @Override
-            public boolean isCellEditable(EventObject anEvent) {
-                return false;
-            }
-
-            @Override
-            public boolean stopCellEditing() {
-                return true;
-            }
-
-            @Override
-            public void cancelCellEditing() {
-            }
-
-            @Override
-            public void addCellEditorListener(CellEditorListener l) {
-            }
-
-            @Override
-            public void removeCellEditorListener(CellEditorListener l) {
-            }
-
-            @Override
-            public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-                label = value.toString();
-                return new JLabel(label);
-            }            
-        });
-        table.setDefaultRenderer(JButton.class, new ButtonRenderer());
-        table.getTableHeader().setUI(null);
+        drawTable(tableModel);
 
         scrollPane = new JScrollPane();
         scrollPane.setViewportView(table); 
@@ -237,7 +182,7 @@ public class BackupGUI extends JFrame {
     }
 
     class ButtonEditor extends DefaultCellEditor {
-        protected JButton button;
+        private JButton button;
         private String label;
         private boolean isPushed;
 

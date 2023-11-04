@@ -40,12 +40,7 @@ public class BackupTool {
     private static ArrayList<BackupConfig> configs;
     private static ArrayList<String> configsUsed;
 
-    public BackupTool(BackupGUI gui) {
-        Thread backupThread = new Thread(new BackupThread(gui));
-        backupThread.start();
-    }
-
-    public static class BackupThread extends Thread {
+    private static class BackupThread extends Thread {
         private String configPath;
         private int configIndex;
         private BackupGUI gui;
@@ -107,7 +102,7 @@ public class BackupTool {
                         for (int i = 0; i < gui.buttons.length; i++) gui.buttons[i].setText(gui.configsUsed[i] ? gui.disableLabel : gui.enableLabel);
                         gui.configsUsed[gui.configs.indexOf(config)] = false;
                         gui.buttons[gui.configs.indexOf(config)].setText(gui.enableLabel);
-                        gui.redrawTable();
+                        gui.updateTable();
                     }
                     while (Files.exists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)]))))
                         try {
@@ -121,13 +116,18 @@ public class BackupTool {
         }
     }
 
+    public BackupTool(BackupGUI gui) {
+        Thread backupThread = new Thread(new BackupThread(gui));
+        backupThread.start();
+    }
+
     public static void main(String args[]) throws IOException{
         backupThreads = new ArrayList<BackupThread>();
         configs = new ArrayList<BackupConfig>();
         configsUsed = new ArrayList<String>();
-        String configPath = "", defaultConfigName = "", configMasterFile = BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json");
+        String configPath = "", defaultConfigName = "", masterConfigFile = BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json");
 
-        JsonReader reader = new JsonReader(new FileReader(configMasterFile));
+        JsonReader reader = new JsonReader(new FileReader(masterConfigFile));
         reader.beginObject();
         while (reader.hasNext()) {
             String name = reader.nextName();
@@ -210,7 +210,6 @@ public class BackupTool {
                                          "Enter in \"stop\" to suspend a backup configuration.\n" +
                                          "Enter in \"exit\", \"quit\", or \"end\" to shut down this tool.\n" + BackupWatchdog.prompt);
                         break;
-                    case "": System.out.print(BackupWatchdog.prompt); break;
                     default: System.out.print("Invalid command\n" + BackupWatchdog.prompt); break;
                 }
                 if (stopBackupTool) break;

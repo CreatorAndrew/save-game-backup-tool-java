@@ -49,7 +49,7 @@ public class BackupWatchdog {
         return Long.parseLong(date.format(new Date(Files.getLastModifiedTime(savePath).toMillis())));
     }
 
-    public static final String prompt = "> ";
+    protected static final String prompt = "> ";
 
     // This method makes it so that this program treats the filesystem as relative to its own path.
     public static String replaceLocalDotDirectory(String path) {
@@ -145,7 +145,7 @@ public class BackupWatchdog {
         }
         if (savePath == null) {
             if (textArea == null && usePrompt) System.out.println();
-            System.out.println(addTextToArea("No save file found.", textArea));
+            System.out.println(addTextToArea("No save file found", textArea));
             if (textArea == null && usePrompt) System.out.print(prompt);
             return true;
         }
