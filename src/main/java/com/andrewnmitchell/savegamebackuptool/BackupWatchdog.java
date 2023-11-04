@@ -72,15 +72,16 @@ public class BackupWatchdog {
         return text;
     }
 
-    public static void watchdog(String configFile, boolean usePrompt) throws IOException {
-        watchdog(configFile, null, usePrompt);
+    public static boolean watchdog(String configFile, int configIndex, boolean usePrompt) throws IOException {
+        return watchdog(configFile, null, configIndex, usePrompt);
     }
 
-    public static void watchdog(String configFile, JTextArea textArea, boolean usePrompt, boolean enabled) throws IOException {
-        if (enabled) watchdog(configFile, textArea, usePrompt);
+    public static boolean watchdog(String configFile, JTextArea textArea, int configIndex, boolean usePrompt, boolean enabled) throws IOException {
+        if (enabled) return watchdog(configFile, textArea, configIndex, usePrompt);
+        return false;
     }
 
-    public static void watchdog(String configFile, JTextArea textArea, boolean usePrompt) throws IOException {
+    public static boolean watchdog(String configFile, JTextArea textArea, int configIndex, boolean usePrompt) throws IOException {
         String home = System.getProperty("user.home").replaceAll("\\\\", "/"), backupFolder = "", backupFileNamePrefix = "";
 
         Long lastBackupTime = Long.parseLong("0");
@@ -143,8 +144,10 @@ public class BackupWatchdog {
             }
         }
         if (savePath == null) {
+            if (textArea == null && usePrompt) System.out.println();
             System.out.println(addTextToArea("No save file found.", textArea));
-            System.exit(0);
+            if (textArea == null && usePrompt) System.out.print(prompt);
+            return true;
         }
         String saveFolder = savePath.toString().substring(0, savePath.toString().replaceAll("\\\\", "/").lastIndexOf("/") + 1);
 
@@ -163,19 +166,20 @@ public class BackupWatchdog {
                     // Create the backup archive file
                     backupArchive.compress(replaceLocalDotDirectory("./") + backup, textArea);
                     if (!backupFolder.equals(replaceLocalDotDirectory("./")))
-                        Files.move(Path.of(replaceLocalDotDirectory("./") + backup), Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
+                        Files.move(Path.of(replaceLocalDotDirectory("./") + backup),
+                                   Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
                 } else System.out.println(addTextToArea(backup + " already exists in " + backupFolder + ".\nBackup cancelled", textArea));
 
                 // Rewrite the JSON file
                 String configOutput = "{\n    \"searchableSavePaths\": [";
                 for (int i = 0; i < savePaths.size(); i++)
                     configOutput += "\n        {\"path\": \"" + savePaths.get(i).getPath()
-                    + "\", \"isAbsolute\": " + savePaths.get(i).getPathIsAbsolute() + "}" + (i < savePaths.size() - 1 ? "," : "");
+                                  + "\", \"isAbsolute\": " + savePaths.get(i).getPathIsAbsolute() + "}" + (i < savePaths.size() - 1 ? "," : "");
                 configOutput += "\n    ],\n    \"backupPath\": {\"path\": \""
-                    + backupFolder.substring(backupFolder.contains(home + "/") ? (home + "/").length() : 0, backupFolder.length())
-                    + "\", \"isAbsolute\": " + !backupFolder.contains(home + "/") + "},"
-                    + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
-                    + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
+                              + backupFolder.substring(backupFolder.contains(home + "/") ? (home + "/").length() : 0, backupFolder.length())
+                              + "\", \"isAbsolute\": " + !backupFolder.contains(home + "/") + "},"
+                              + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
+                              + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
                 Files.writeString(Path.of(configFile), configOutput);
 
                 if (textArea == null && usePrompt) System.out.print(prompt);
@@ -183,5 +187,6 @@ public class BackupWatchdog {
         // Sometimes on Linux, when Steam launches a game like Bully: Scholarship Edition, the path to the compatdata folder becomes briefly inaccessible.
         } catch (NoSuchFileException exception) {
         }
+        return false;
     }
 }

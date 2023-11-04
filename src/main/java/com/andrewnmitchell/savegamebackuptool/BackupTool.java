@@ -35,61 +35,97 @@ class BackupConfig {
     }
 }
 
-class BackupThread extends Thread {
-    private String configPath;
-    private BackupGUI gui;
-    private boolean disabled = false, usePrompt;
-
-    public BackupThread(BackupGUI gui) {
-        this.gui = gui;
-        usePrompt = false;
-    }
-
-    public BackupThread(String path, boolean usePrompt) {
-        configPath = path;
-        this.usePrompt = usePrompt;
-    }
-
-    public void disable() {
-        disabled = true;
-    }
-
-    public void run() {
-        if (gui != null) watchdog(gui);
-        else if (configPath != null) watchdog(configPath);
-    }
-
-    public void watchdog(String configPath) {
-        String stopFilePath = "./.stop" + configPath.substring(configPath.lastIndexOf("/") + 1).replace(".json", "");
-        while (Files.notExists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))) && !disabled)
-            try {
-                BackupWatchdog.watchdog(configPath, usePrompt);
-            } catch (IOException exception) {
-            }
-        while (Files.exists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))))
-            try {
-                Files.delete(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)));
-            // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
-            } catch (IOException exception) {
-            }
-    }
-
-    public void watchdog(BackupGUI gui) {
-        while (!disabled) for (BackupConfig config : gui.configs)
-            try {
-                // For some reason on Windows, without the following line, the program will be stuck.
-                System.out.print("");
-                BackupWatchdog.watchdog(config.getPath(), gui.textArea, usePrompt, gui.configsUsed[gui.configs.indexOf(config)]);
-            } catch (IOException exception) {
-            }
-    }
-}
-
 public class BackupTool {
+    private static ArrayList<BackupThread> backupThreads;
+    private static ArrayList<BackupConfig> configs;
+    private static ArrayList<String> configsUsed;
+
+    public BackupTool(BackupGUI gui) {
+        Thread backupThread = new Thread(new BackupThread(gui));
+        backupThread.start();
+    }
+
+    public static class BackupThread extends Thread {
+        private String configPath;
+        private int configIndex;
+        private BackupGUI gui;
+        private boolean disabled = false, usePrompt;
+
+        public BackupThread(BackupGUI gui) {
+            this.gui = gui;
+            usePrompt = false;
+        }
+
+        public BackupThread(String path, int index, boolean usePrompt) {
+            configPath = path;
+            configIndex = index;
+            this.usePrompt = usePrompt;
+        }
+
+        public void disable() {
+            disabled = true;
+        }
+
+        public void run() {
+            if (gui != null) watchdog(gui);
+            else if (configPath != null) watchdog(configPath, configIndex);
+        }
+
+        public boolean watchdog(String configPath, int configIndex) {
+            String stopFilePath = "./.stop" + configPath.substring(configPath.lastIndexOf("/") + 1).replace(".json", "");
+            while (Files.notExists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))) && !disabled)
+                try {
+                    if (BackupWatchdog.watchdog(configPath, configIndex, usePrompt)) break;
+                } catch (IOException exception) {
+                }
+            while (Files.exists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))))
+                try {
+                    Files.delete(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)));
+                // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
+                } catch (IOException exception) {
+                }
+            removeConfig(configPath);
+            return true;
+        }
+
+        public void watchdog(BackupGUI gui) {
+            String[] stopFilePaths = new String[gui.configs.size()];
+            for (int i = 0; i < stopFilePaths.length; i++)
+                stopFilePaths[i] = "./.stop" + gui.configs.get(i).getPath().substring(gui.configs.get(i).getPath().lastIndexOf("/") + 1).replace(".json", "");
+            while (!disabled) for (BackupConfig config : gui.configs)
+                try {
+                    // For some reason on Windows, without the following line, the program will be stuck.
+                    System.out.print("");
+                    if (BackupWatchdog.watchdog(config.getPath(), gui.textArea, gui.configs.indexOf(config),
+                                                usePrompt, gui.configsUsed[gui.configs.indexOf(config)])) {
+                        gui.configsUsedInvalid[gui.configs.indexOf(config)] = true;
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException exception) {
+                        }
+                    }
+                    if (Files.exists(Path.of(stopFilePaths[gui.configs.indexOf(config)]))) {
+                        for (int i = 0; i < gui.buttons.length; i++) gui.buttons[i].setText(gui.configsUsed[i] ? gui.disableLabel : gui.enableLabel);
+                        gui.configsUsed[gui.configs.indexOf(config)] = false;
+                        gui.buttons[gui.configs.indexOf(config)].setText(gui.enableLabel);
+                        gui.redrawTable();
+                    }
+                    while (Files.exists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)]))))
+                        try {
+                            Files.delete(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])));
+                        // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
+                        } catch (IOException exception) {
+                        }
+                // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
+                } catch (IOException exception) {
+                }
+        }
+    }
+
     public static void main(String args[]) throws IOException{
-        ArrayList<BackupThread> backupThreads = new ArrayList<BackupThread>();
-        ArrayList<BackupConfig> configs = new ArrayList<BackupConfig>();
-        ArrayList<String> configsUsed = new ArrayList<String>();
+        backupThreads = new ArrayList<BackupThread>();
+        configs = new ArrayList<BackupConfig>();
+        configsUsed = new ArrayList<String>();
         String configPath = "", defaultConfigName = "", configMasterFile = BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json");
 
         JsonReader reader = new JsonReader(new FileReader(configMasterFile));
@@ -140,7 +176,7 @@ public class BackupTool {
             boolean stopBackupTool = false;
             Scanner scanner = new Scanner(System.in);
             if (!configPath.equals("")) {
-                backupThreads.add(new BackupThread(configPath, false));
+                backupThreads.add(new BackupThread(configPath, backupThreads.size(), false));
                 backupThreads.get(backupThreads.size() - 1).start();
             } else System.out.print("Enter in \"help\" or \"?\" for assistance.\n" + BackupWatchdog.prompt);
             while (configPath.equals("")) {
@@ -150,18 +186,14 @@ public class BackupTool {
                         String config = addOrRemoveConfig(scanner, configPath, configs);
                         if (!configsUsed.contains(config)) {
                             configsUsed.add(config);
-                            backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), true));
+                            backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), backupThreads.size(), true));
                             backupThreads.get(backupThreads.size() - 1).start();
                         } else System.out.println("That configuration is already in use.");
                         break;
                     }
                     case "stop": {
                         String config = addOrRemoveConfig(scanner, configPath, configs);
-                        if (configsUsed.contains(config)) {
-                            backupThreads.get(configsUsed.indexOf(config)).disable();
-                            backupThreads.remove(configsUsed.indexOf(config));
-                            configsUsed.remove(configsUsed.indexOf(config));
-                        } else System.out.println("That configuration was not in use.");
+                        removeConfig(config);
                         break;
                     }
                     case "end":
@@ -190,6 +222,14 @@ public class BackupTool {
         }
     }
 
+    public static void removeConfig(String config) {
+        if (configsUsed.contains(config)) {
+            backupThreads.get(configsUsed.indexOf(config)).disable();
+            backupThreads.remove(configsUsed.indexOf(config));
+            configsUsed.remove(configsUsed.indexOf(config));
+        } else System.out.println("That configuration was not in use.");
+    }
+
     public static String addOrRemoveConfig(Scanner input, String configPath, ArrayList<BackupConfig> configs) {
         if (configPath.equals("")) {
             System.out.println("Select one of the following configurations:");
@@ -212,10 +252,5 @@ public class BackupTool {
             configPath = configs.get(Integer.parseInt(choice)).getPath();
         }
         return configPath;
-    }
-
-    public BackupTool(BackupGUI gui) {
-        Thread backupThread = new Thread(new BackupThread(gui));
-        backupThread.start();
     }
 }
