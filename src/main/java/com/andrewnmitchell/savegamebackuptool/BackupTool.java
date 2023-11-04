@@ -192,6 +192,7 @@ public class BackupTool {
                     }
                     case "stop": {
                         String config = addOrRemoveConfig(scanner, configPath, configs);
+                        if (!configsUsed.contains(config)) System.out.println("That configuration was not in use.");
                         removeConfig(config);
                         break;
                     }
@@ -226,7 +227,7 @@ public class BackupTool {
             backupThreads.get(configsUsed.indexOf(config)).disable();
             backupThreads.remove(configsUsed.indexOf(config));
             configsUsed.remove(configsUsed.indexOf(config));
-        } else System.out.println("That configuration was not in use.");
+        }
     }
 
     public static String addOrRemoveConfig(Scanner input, String configPath, ArrayList<BackupConfig> configs) {
