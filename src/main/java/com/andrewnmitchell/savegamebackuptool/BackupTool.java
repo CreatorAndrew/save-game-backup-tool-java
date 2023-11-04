@@ -104,7 +104,7 @@ public class BackupTool {
                         } catch (InterruptedException exception) {
                         }
                     }
-                    if (Files.exists(Path.of(stopFilePaths[gui.configs.indexOf(config)]))) {
+                    if (Files.exists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])))) {
                         for (int i = 0; i < gui.buttons.length; i++) gui.buttons[i].setText(gui.configsUsed[i] ? gui.disableLabel : gui.enableLabel);
                         gui.configsUsed[gui.configs.indexOf(config)] = false;
                         gui.buttons[gui.configs.indexOf(config)].setText(gui.enableLabel);
