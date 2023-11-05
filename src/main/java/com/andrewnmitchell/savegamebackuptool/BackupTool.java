@@ -121,7 +121,7 @@ public class BackupTool {
         backupThread.start();
     }
 
-    public static void main(String args[]) throws IOException{
+    public static void main(String args[]) throws IOException {
         backupThreads = new ArrayList<BackupThread>();
         configs = new ArrayList<BackupConfig>();
         configsUsed = new ArrayList<String>();
