@@ -1,6 +1,6 @@
 package com.andrewnmitchell.savegamebackuptool;
 import java.io.File;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -65,6 +65,6 @@ public class BackupUtils {
     }
 
     private String generateZipEntry(String file) {
-        return file.substring(Path.of(sourceFolder).toFile().getAbsolutePath().length() + 1, file.length());
+        return file.substring(Paths.get(sourceFolder).toFile().getAbsolutePath().length() + 1, file.length());
     }
 }

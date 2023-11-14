@@ -2,7 +2,7 @@ package com.andrewnmitchell.savegamebackuptool;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 import com.google.gson.stream.JsonReader;
@@ -68,14 +68,14 @@ public class BackupTool {
 
         public void watchdog(String configPath, int configIndex) {
             String stopFilePath = "./.stop" + configPath.substring(configPath.lastIndexOf("/") + 1).replace(".json", "");
-            while (Files.notExists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))) && !disabled)
+            while (Files.notExists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))) && !disabled)
                 try {
                     if (BackupWatchdog.watchdog(configPath, configIndex, usePrompt)) break;
                 } catch (IOException exception) {
                 }
-            while (Files.exists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))))
+            while (Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))))
                 try {
-                    Files.delete(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)));
+                    Files.delete(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)));
                 // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
                 } catch (IOException exception) {
                 }
@@ -98,15 +98,15 @@ public class BackupTool {
                         } catch (InterruptedException exception) {
                         }
                     }
-                    if (Files.exists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])))) {
+                    if (Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])))) {
                         for (int i = 0; i < gui.buttons.length; i++) gui.buttons[i].setText(gui.configsUsed[i] ? gui.disableLabel : gui.enableLabel);
                         gui.configsUsed[gui.configs.indexOf(config)] = false;
                         gui.buttons[gui.configs.indexOf(config)].setText(gui.enableLabel);
                         gui.updateTable();
                     }
-                    while (Files.exists(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)]))))
+                    while (Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)]))))
                         try {
-                            Files.delete(Path.of(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])));
+                            Files.delete(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])));
                         // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
                         } catch (IOException exception) {
                         }
@@ -233,7 +233,7 @@ public class BackupTool {
     public static String addOrRemoveConfig(Scanner input, String configPath, ArrayList<BackupConfig> configs) {
         if (configPath.equals("")) {
             System.out.println("Select one of the following configurations:");
-            for (int i = 0; i < configs.size(); i++) System.out.print((i + ": " + configs.get(i).getName()).indent(4));
+            for (int i = 0; i < configs.size(); i++) System.out.println("    " + i + ": " + configs.get(i).getName());
             String choice = "";
             while (choice.equals("")) {
                 System.out.print("Enter in an option number here: ");

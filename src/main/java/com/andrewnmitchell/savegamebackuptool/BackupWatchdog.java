@@ -4,12 +4,15 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import javax.swing.JTextArea;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FileReader;
 import com.google.gson.stream.JsonReader;
 
@@ -138,8 +141,8 @@ public class BackupWatchdog {
         for (int i = 0; i < savePaths.size(); i++) {
             String savePathString = (savePaths.get(i).getPathIsAbsolute() ? "" : (home + "/")) + savePaths.get(i).getPath();
             savePathString = replaceLocalDotDirectory(savePathString);
-            if (Files.exists(Path.of(savePathString))) {
-                savePath = Path.of(savePathString);
+            if (Files.exists(Paths.get(savePathString))) {
+                savePath = Paths.get(savePathString);
                 break;
             }
         }
@@ -154,7 +157,7 @@ public class BackupWatchdog {
         BackupUtils backupArchive = new BackupUtils(saveFolder);
         backupArchive.generateFileList(new File(saveFolder));
 
-        if (Files.notExists(Path.of(backupFolder))) Files.createDirectories(Path.of(backupFolder));
+        if (Files.notExists(Paths.get(backupFolder))) Files.createDirectories(Paths.get(backupFolder));
 
         try {
             if (getModifiedDate(savePath) > lastBackupTime) {
@@ -162,12 +165,12 @@ public class BackupWatchdog {
 
                 if (textArea == null && usePrompt) System.out.println();
                 String backup = backupFileNamePrefix + "+" + lastBackupTime + ".zip";
-                if (Files.notExists(Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
+                if (Files.notExists(Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
                     // Create the backup archive file
                     backupArchive.compress(replaceLocalDotDirectory("./") + backup, textArea);
                     if (!backupFolder.equals(replaceLocalDotDirectory("./")))
-                        Files.move(Path.of(replaceLocalDotDirectory("./") + backup),
-                                   Path.of(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
+                        Files.move(Paths.get(replaceLocalDotDirectory("./") + backup),
+                                   Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
                 } else System.out.println(addTextToArea(backup + " already exists in " + backupFolder + ".\nBackup cancelled", textArea));
 
                 // Rewrite the JSON file
@@ -180,7 +183,10 @@ public class BackupWatchdog {
                               + "\", \"isAbsolute\": " + !backupFolder.contains(home + "/") + "},"
                               + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
                               + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
-                Files.writeString(Path.of(configFile), configOutput);
+                FileWriter fileWriter = new FileWriter(configFile);
+                BufferedWriter writer = new BufferedWriter(fileWriter);
+                writer.write(configOutput);
+                writer.close();
 
                 if (textArea == null && usePrompt) System.out.print(prompt);
             }
