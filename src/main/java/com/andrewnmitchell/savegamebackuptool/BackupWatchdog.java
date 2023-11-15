@@ -185,7 +185,7 @@ public class BackupWatchdog {
                               + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
                 FileWriter fileWriter = new FileWriter(configFile);
                 BufferedWriter writer = new BufferedWriter(fileWriter);
-                writer.write(configOutput);
+                writer.write(configOutput.replaceAll("\n", System.getProperty("os.name").contains("Windows") ? "\r\n" : "\n"));
                 writer.close();
 
                 if (textArea == null && usePrompt) System.out.print(prompt);
