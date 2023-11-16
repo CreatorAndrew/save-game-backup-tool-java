@@ -167,7 +167,7 @@ public class BackupTool {
 
         for (int i = 0; i < args.length && args.length > 1 && !skipChoice; i++)
             if (args[i].toLowerCase().equals("--config") && i < args.length - 1) {
-                configPath = args[i + 1];
+                configPath = args[i + 1].replace(".json", "") + ".json";
                 break;
             }
 
