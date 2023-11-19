@@ -243,8 +243,7 @@ public class BackupTool {
                         System.out.println("Not a valid option number. Try again.");
                         choice = "";
                     }
-                }
-                catch (NumberFormatException exception) {
+                } catch (NumberFormatException exception) {
                     System.out.println("Invalid input value. Try again with a numeric value.");
                     choice = "";
                 }
