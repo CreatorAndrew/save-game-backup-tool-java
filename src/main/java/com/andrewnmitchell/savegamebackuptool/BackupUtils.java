@@ -45,7 +45,6 @@ public class BackupUtils {
 
             zipOutputStream.closeEntry();
             System.out.println(BackupWatchdog.addToTextArea("Backup successful", textArea));
-
         } catch (IOException exception) {
         } finally {
             try {
