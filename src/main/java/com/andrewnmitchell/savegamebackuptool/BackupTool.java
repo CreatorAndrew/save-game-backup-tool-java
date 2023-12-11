@@ -101,15 +101,8 @@ public class BackupTool {
                         Thread.sleep((long) (interval * 1000));
                     } catch (InterruptedException exception) {
                     }
-                    if (BackupWatchdog.watchdog(config.getPath(), gui.textArea, gui.configs.indexOf(config),
-                                                usePrompt, gui.configsUsed[gui.configs.indexOf(config)])) {
-                        gui.configsUsedInvalid[gui.configs.indexOf(config)] = true;
-                        try {
-                            Thread.sleep((long) (interval * 1000) + 10);
-                        } catch (InterruptedException exception) {
-                        }
-                    }
-                    if (Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])))) {
+                    if (BackupWatchdog.watchdog(config.getPath(), gui.textArea, gui.configs.indexOf(config), usePrompt, gui.configsUsed[gui.configs.indexOf(config)])
+                     || Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])))) {
                         for (int i = 0; i < gui.buttons.length; i++) gui.buttons[i].setText(gui.configsUsed[i] ? gui.disableLabel : gui.enableLabel);
                         gui.configsUsed[gui.configs.indexOf(config)] = false;
                         gui.buttons[gui.configs.indexOf(config)].setText(gui.enableLabel);

@@ -25,13 +25,12 @@ import java.awt.event.ActionListener;
 public class BackupGUI extends JFrame {
     private JScrollPane scrollPane, textScrollPane;
     private JTable table;
-    private double interval;
     protected JTextArea textArea;
     protected JButton[] buttons;
     protected final String enableLabel = "Start", disableLabel = "Stop";
     protected final int width = 512, height = 384;
     protected ArrayList<BackupConfig> configs;
-    protected boolean[] configsUsed, configsUsedInvalid;
+    protected boolean[] configsUsed;
 
     public BackupGUI(ArrayList<BackupConfig> configs, double interval) {
         try {
@@ -39,15 +38,9 @@ public class BackupGUI extends JFrame {
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException exception) {
         }
 
-        this.interval = interval;
-
         this.configs = configs;
         configsUsed = new boolean[configs.size()];
-        configsUsedInvalid = new boolean[configs.size()];
-        for (int i = 0; i < configsUsed.length; i++) { 
-            configsUsed[i] = false;
-            configsUsedInvalid[i] = false;
-        }
+        for (int i = 0; i < configsUsed.length; i++) configsUsed[i] = false;
 
         initButtons();
         initComponents();
@@ -203,15 +196,6 @@ public class BackupGUI extends JFrame {
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
             label = (value == null) ? "" : value.toString();
             configsUsed[row] = label.equals(enableLabel);
-            try {
-                Thread.sleep((long) (interval * 1000) + 10);
-                if (configsUsedInvalid[row]) {
-                    label = disableLabel;
-                    configsUsed[row] = false;
-                    configsUsedInvalid[row] = false;
-                }
-            } catch (InterruptedException exception) {
-            }
             button.setText(label);
             isPushed = true;
             return button;
