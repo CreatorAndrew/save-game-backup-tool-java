@@ -172,7 +172,7 @@ public class BackupWatchdog {
                         Files.move(Paths.get(replaceLocalDotDirectory("./") + backup),
                                    Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
                 } else System.out.println(addToTextArea(backup + " already exists in " +
-                                                        (System.getProperty("os.name").contains("Windows") ? backupFolder.replaceAll("/", "\\") : backupFolder) +
+                                                        backupFolder.replaceAll("/", System.getProperty("os.name").contains("Windows") ? "\\" : "/") +
                                                         ".\nBackup cancelled", textArea));
 
                 // Rewrite the JSON file
