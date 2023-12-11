@@ -6,6 +6,6 @@ cp ./*.json ./dist
 cp ./LICENSE ./dist
 cp -r ./Test ./dist
 mv ./dist Save\ Game\ Backup\ Tool
-7z a save-game-backup-tool.zip ./Save\ Game\ Backup\ Tool
+7z a save-game-backup-tool-java.zip ./Save\ Game\ Backup\ Tool
 mvn clean
 rm -rf Save\ Game\ Backup\ Tool

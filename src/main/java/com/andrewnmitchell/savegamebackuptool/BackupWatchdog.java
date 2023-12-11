@@ -67,7 +67,7 @@ public class BackupWatchdog {
         return !newPath.equals(path) ? newPath : path;
     }
 
-    public static String addTextToArea(String text, JTextArea textArea) {
+    public static String addToTextArea(String text, JTextArea textArea) {
         if (textArea != null) {
             textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
             textArea.getCaret().setDot(Integer.MAX_VALUE);
@@ -87,7 +87,7 @@ public class BackupWatchdog {
     public static boolean watchdog(String configFile, JTextArea textArea, int configIndex, boolean usePrompt) throws IOException {
         String home = System.getProperty("user.home").replaceAll("\\\\", "/"), backupFolder = "", backupFileNamePrefix = "";
 
-        Long lastBackupTime = Long.parseLong("0");
+        long lastBackupTime = 0;
 
         ArrayList<BackupSavePath> savePaths = new ArrayList<BackupSavePath>();
 
@@ -148,7 +148,7 @@ public class BackupWatchdog {
         }
         if (savePath == null) {
             if (textArea == null && usePrompt) System.out.println();
-            System.out.println(addTextToArea("No save file found", textArea));
+            System.out.println(addToTextArea("No save file found", textArea));
             if (textArea == null && usePrompt) System.out.print(prompt);
             return true;
         }
@@ -171,7 +171,9 @@ public class BackupWatchdog {
                     if (!backupFolder.equals(replaceLocalDotDirectory("./")))
                         Files.move(Paths.get(replaceLocalDotDirectory("./") + backup),
                                    Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
-                } else System.out.println(addTextToArea(backup + " already exists in " + backupFolder + ".\nBackup cancelled", textArea));
+                } else System.out.println(addToTextArea(backup + " already exists in " +
+                                                        (System.getProperty("os.name").contains("Windows") ? backupFolder.replaceAll("/", "\\") : backupFolder) +
+                                                        ".\nBackup cancelled", textArea));
 
                 // Rewrite the JSON file
                 String configOutput = "{\n    \"searchableSavePaths\": [";

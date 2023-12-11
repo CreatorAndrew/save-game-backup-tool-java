@@ -43,18 +43,21 @@ public class BackupTool {
     private static class BackupThread extends Thread {
         private String configPath;
         private int configIndex;
-        private BackupGUI gui;
+        private double interval;
         private boolean disabled = false, usePrompt;
+        private BackupGUI gui;
 
-        public BackupThread(BackupGUI gui) {
+        public BackupThread(BackupGUI gui, double interval) {
             this.gui = gui;
             usePrompt = false;
+            this.interval = interval;
         }
 
-        public BackupThread(String path, int index, boolean usePrompt) {
+        public BackupThread(String path, int index, boolean usePrompt, double interval) {
             configPath = path;
             configIndex = index;
             this.usePrompt = usePrompt;
+            this.interval = interval;
         }
 
         public void disable() {
@@ -70,6 +73,10 @@ public class BackupTool {
             String stopFilePath = "./.stop" + configPath.substring(configPath.lastIndexOf("/") + 1).replace(".json", "");
             while (Files.notExists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))) && !disabled)
                 try {
+                    try {
+                        Thread.sleep((long) (interval * 1000));
+                    } catch (InterruptedException exception) {
+                    }
                     if (BackupWatchdog.watchdog(configPath, configIndex, usePrompt)) break;
                 } catch (IOException exception) {
                 }
@@ -90,11 +97,15 @@ public class BackupTool {
                 try {
                     // For some reason on Windows, without the following line, the program will be stuck.
                     System.out.print("");
+                    try {
+                        Thread.sleep((long) (interval * 1000));
+                    } catch (InterruptedException exception) {
+                    }
                     if (BackupWatchdog.watchdog(config.getPath(), gui.textArea, gui.configs.indexOf(config),
                                                 usePrompt, gui.configsUsed[gui.configs.indexOf(config)])) {
                         gui.configsUsedInvalid[gui.configs.indexOf(config)] = true;
                         try {
-                            Thread.sleep(10);
+                            Thread.sleep((long) (interval * 1000) + 10);
                         } catch (InterruptedException exception) {
                         }
                     }
@@ -116,8 +127,8 @@ public class BackupTool {
         }
     }
 
-    public BackupTool(BackupGUI gui) {
-        Thread backupThread = new Thread(new BackupThread(gui));
+    public BackupTool(BackupGUI gui, double interval) {
+        Thread backupThread = new Thread(new BackupThread(gui, interval));
         backupThread.start();
     }
 
@@ -126,6 +137,7 @@ public class BackupTool {
         configs = new ArrayList<BackupConfig>();
         configsUsed = new ArrayList<String>();
         String configPath = "", defaultConfigName = "", masterConfigFile = BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json");
+        double interval = 0;
 
         JsonReader reader = new JsonReader(new FileReader(masterConfigFile));
         reader.beginObject();
@@ -151,6 +163,7 @@ public class BackupTool {
                     break;
                 }
                 case "default": defaultConfigName = reader.nextString(); break;
+                case "interval": interval = reader.nextDouble(); break;
             }
         }
         reader.endObject();
@@ -175,7 +188,7 @@ public class BackupTool {
             boolean stopBackupTool = false;
             Scanner scanner = new Scanner(System.in);
             if (!configPath.equals("")) {
-                backupThreads.add(new BackupThread(configPath, backupThreads.size(), false));
+                backupThreads.add(new BackupThread(configPath, backupThreads.size(), false, interval));
                 backupThreads.get(backupThreads.size() - 1).start();
             } else System.out.print("Enter in \"help\" or \"?\" for assistance.\n" + BackupWatchdog.prompt);
             while (configPath.equals("")) {
@@ -185,7 +198,7 @@ public class BackupTool {
                         String config = addOrRemoveConfig(scanner, configPath, configs);
                         if (!configsUsed.contains(config)) {
                             configsUsed.add(config);
-                            backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), backupThreads.size(), true));
+                            backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), backupThreads.size(), true, interval));
                             backupThreads.get(backupThreads.size() - 1).start();
                         } else System.out.println("That configuration is already in use.");
                         break;
@@ -218,7 +231,7 @@ public class BackupTool {
             }
             scanner.close();
         } else {
-            BackupGUI gui = new BackupGUI(configs);
+            BackupGUI gui = new BackupGUI(configs, interval);
         }
     }
 

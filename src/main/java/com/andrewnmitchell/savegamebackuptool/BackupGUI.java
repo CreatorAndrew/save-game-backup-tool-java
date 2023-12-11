@@ -25,6 +25,7 @@ import java.awt.event.ActionListener;
 public class BackupGUI extends JFrame {
     private JScrollPane scrollPane, textScrollPane;
     private JTable table;
+    private double interval;
     protected JTextArea textArea;
     protected JButton[] buttons;
     protected final String enableLabel = "Start", disableLabel = "Stop";
@@ -32,11 +33,13 @@ public class BackupGUI extends JFrame {
     protected ArrayList<BackupConfig> configs;
     protected boolean[] configsUsed, configsUsedInvalid;
 
-    public BackupGUI(ArrayList<BackupConfig> configs) {
+    public BackupGUI(ArrayList<BackupConfig> configs, double interval) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException exception) {
         }
+
+        this.interval = interval;
 
         this.configs = configs;
         configsUsed = new boolean[configs.size()];
@@ -55,7 +58,7 @@ public class BackupGUI extends JFrame {
 
         setVisible(true);
 
-        BackupTool backupTool = new BackupTool(this);
+        BackupTool backupTool = new BackupTool(this, interval);
     }
 
     public void drawTable(DefaultTableModel tableModel) {
@@ -201,7 +204,7 @@ public class BackupGUI extends JFrame {
             label = (value == null) ? "" : value.toString();
             configsUsed[row] = label.equals(enableLabel);
             try {
-                Thread.sleep(10);
+                Thread.sleep((long) (interval * 1000) + 10);
                 if (configsUsedInvalid[row]) {
                     label = disableLabel;
                     configsUsed[row] = false;
