@@ -45,12 +45,15 @@ public class BackupTool {
         private int configIndex;
         private double interval;
         private boolean disabled = false, usePrompt;
+        private boolean[] firstRun;
         private BackupGUI gui;
 
         public BackupThread(BackupGUI gui, double interval) {
             this.gui = gui;
             usePrompt = false;
             this.interval = interval;
+            firstRun = new boolean[gui.configs.size()];
+            for (int i = 0; i < firstRun.length; i++) firstRun[i] = true;
         }
 
         public BackupThread(String path, int index, boolean usePrompt, double interval) {
@@ -58,6 +61,8 @@ public class BackupTool {
             configIndex = index;
             this.usePrompt = usePrompt;
             this.interval = interval;
+            firstRun = new boolean[1];
+            firstRun[0] = true;
         }
 
         public void disable() {
@@ -77,9 +82,11 @@ public class BackupTool {
                         Thread.sleep((long) (interval * 1000));
                     } catch (InterruptedException exception) {
                     }
-                    if (BackupWatchdog.watchdog(configPath, configIndex, usePrompt)) break;
+                    if (BackupWatchdog.watchdog(configPath, configIndex, usePrompt, firstRun[0])) break;
+                    firstRun[0] = false;
                 } catch (IOException exception) {
                 }
+            firstRun[0] = true;
             while (Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))))
                 try {
                     Files.delete(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)));
@@ -101,13 +108,20 @@ public class BackupTool {
                         Thread.sleep((long) (interval * 1000));
                     } catch (InterruptedException exception) {
                     }
-                    if (BackupWatchdog.watchdog(config.getPath(), gui.textArea, gui.configs.indexOf(config), usePrompt, gui.configsUsed[gui.configs.indexOf(config)])
+                    if (BackupWatchdog.watchdog(config.getPath(),
+                                                gui.textArea,
+                                                gui.configs.indexOf(config),
+                                                usePrompt,
+                                                firstRun[gui.configs.indexOf(config)],
+                                                gui.configsUsed[gui.configs.indexOf(config)])
                      || Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])))) {
                         for (int i = 0; i < gui.buttons.length; i++) gui.buttons[i].setText(gui.configsUsed[i] ? gui.disableLabel : gui.enableLabel);
                         gui.configsUsed[gui.configs.indexOf(config)] = false;
                         gui.buttons[gui.configs.indexOf(config)].setText(gui.enableLabel);
                         gui.updateTable();
-                    }
+                        firstRun[gui.configs.indexOf(config)] = true;
+                    } else if (gui.configsUsed[gui.configs.indexOf(config)]) firstRun[gui.configs.indexOf(config)] = false;
+                    else firstRun[gui.configs.indexOf(config)] = true;
                     while (Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)]))))
                         try {
                             Files.delete(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePaths[gui.configs.indexOf(config)])));

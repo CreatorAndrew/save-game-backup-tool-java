@@ -2,7 +2,6 @@ package com.andrewnmitchell.savegamebackuptool;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -75,16 +74,16 @@ public class BackupWatchdog {
         return text;
     }
 
-    public static boolean watchdog(String configFile, int configIndex, boolean usePrompt) throws IOException {
-        return watchdog(configFile, null, configIndex, usePrompt);
+    public static boolean watchdog(String configFile, int configIndex, boolean usePrompt, boolean firstRun) throws IOException {
+        return watchdog(configFile, null, configIndex, usePrompt, firstRun);
     }
 
-    public static boolean watchdog(String configFile, JTextArea textArea, int configIndex, boolean usePrompt, boolean enabled) throws IOException {
-        if (enabled) return watchdog(configFile, textArea, configIndex, usePrompt);
+    public static boolean watchdog(String configFile, JTextArea textArea, int configIndex, boolean usePrompt, boolean firstRun, boolean enabled) throws IOException {
+        if (enabled) return watchdog(configFile, textArea, configIndex, usePrompt, firstRun);
         return false;
     }
 
-    public static boolean watchdog(String configFile, JTextArea textArea, int configIndex, boolean usePrompt) throws IOException {
+    public static boolean watchdog(String configFile, JTextArea textArea, int configIndex, boolean usePrompt, boolean firstRun) throws IOException {
         String home = System.getProperty("user.home").replaceAll("\\\\", "/"), backupFolder = "", backupFileNamePrefix = "";
 
         long lastBackupTime = 0;
@@ -147,10 +146,14 @@ public class BackupWatchdog {
             }
         }
         if (savePath == null) {
-            if (textArea == null && usePrompt) System.out.println();
-            System.out.println(addToTextArea("No save file found", textArea));
-            if (textArea == null && usePrompt) System.out.print(prompt);
-            return true;
+            if (firstRun) {
+                if (textArea == null && usePrompt) System.out.println();
+                System.out.println(addToTextArea("No save file found", textArea));
+                if (textArea == null && usePrompt) System.out.print(prompt);
+                return true;
+            }
+            // Sometimes on Linux, when Steam launches a Windows game, the Proton prefix path becomes briefly inaccessible.
+            return false;
         }
         String saveFolder = savePath.toString().substring(0, savePath.toString().replaceAll("\\\\", "/").lastIndexOf("/") + 1);
 
@@ -159,41 +162,37 @@ public class BackupWatchdog {
 
         if (Files.notExists(Paths.get(backupFolder))) Files.createDirectories(Paths.get(backupFolder));
 
-        try {
-            if (getModifiedDate(savePath) > lastBackupTime) {
-                lastBackupTime = getModifiedDate(savePath);
+        if (getModifiedDate(savePath) > lastBackupTime) {
+            lastBackupTime = getModifiedDate(savePath);
 
-                if (textArea == null && usePrompt) System.out.println();
-                String backup = backupFileNamePrefix + "+" + lastBackupTime + ".zip";
-                if (Files.notExists(Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
-                    // Create the backup archive file
-                    backupArchive.compress(replaceLocalDotDirectory("./") + backup, textArea);
-                    if (!backupFolder.equals(replaceLocalDotDirectory("./")))
-                        Files.move(Paths.get(replaceLocalDotDirectory("./") + backup),
-                                   Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
-                } else System.out.println(addToTextArea(backup + " already exists in " +
-                                                        backupFolder.replaceAll("/", System.getProperty("os.name").contains("Windows") ? "\\\\" : "/") +
-                                                        ".\nBackup cancelled", textArea));
+            if (textArea == null && usePrompt) System.out.println();
+            String backup = backupFileNamePrefix + "+" + lastBackupTime + ".zip";
+            if (Files.notExists(Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
+                // Create the backup archive file
+                backupArchive.compress(replaceLocalDotDirectory("./") + backup, textArea);
+                if (!backupFolder.equals(replaceLocalDotDirectory("./")))
+                    Files.move(Paths.get(replaceLocalDotDirectory("./") + backup),
+                                Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
+            } else System.out.println(addToTextArea(backup + " already exists in " +
+                                                    backupFolder.replaceAll("/", System.getProperty("os.name").contains("Windows") ? "\\\\" : "/") +
+                                                    ".\nBackup cancelled", textArea));
 
-                // Rewrite the JSON file
-                String configOutput = "{\n    \"searchableSavePaths\": [";
-                for (int i = 0; i < savePaths.size(); i++)
-                    configOutput += "\n        {\"path\": \"" + savePaths.get(i).getPath()
-                                  + "\", \"isAbsolute\": " + savePaths.get(i).getPathIsAbsolute() + "}" + (i < savePaths.size() - 1 ? "," : "");
-                configOutput += "\n    ],\n    \"backupPath\": {\"path\": \""
-                              + backupFolder.substring(backupFolder.contains(home + "/") ? (home + "/").length() : 0, backupFolder.length())
-                              + "\", \"isAbsolute\": " + !backupFolder.contains(home + "/") + "},"
-                              + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
-                              + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
-                FileWriter fileWriter = new FileWriter(configFile);
-                BufferedWriter writer = new BufferedWriter(fileWriter);
-                writer.write(configOutput.replaceAll("\n", System.getProperty("os.name").contains("Windows") ? "\r\n" : "\n"));
-                writer.close();
+            // Rewrite the JSON file
+            String configOutput = "{\n    \"searchableSavePaths\": [";
+            for (int i = 0; i < savePaths.size(); i++)
+                configOutput += "\n        {\"path\": \"" + savePaths.get(i).getPath()
+                              + "\", \"isAbsolute\": " + savePaths.get(i).getPathIsAbsolute() + "}" + (i < savePaths.size() - 1 ? "," : "");
+            configOutput += "\n    ],\n    \"backupPath\": {\"path\": \""
+                          + backupFolder.substring(backupFolder.contains(home + "/") ? (home + "/").length() : 0, backupFolder.length())
+                          + "\", \"isAbsolute\": " + !backupFolder.contains(home + "/") + "},"
+                          + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
+                          + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
+            FileWriter fileWriter = new FileWriter(configFile);
+            BufferedWriter writer = new BufferedWriter(fileWriter);
+            writer.write(configOutput.replaceAll("\n", System.getProperty("os.name").contains("Windows") ? "\r\n" : "\n"));
+            writer.close();
 
-                if (textArea == null && usePrompt) System.out.print(prompt);
-            }
-        // Sometimes on Linux, when Steam launches a game like Bully: Scholarship Edition, the path to the compatdata folder becomes briefly inaccessible.
-        } catch (NoSuchFileException exception) {
+            if (textArea == null && usePrompt) System.out.print(prompt);
         }
         return false;
     }
