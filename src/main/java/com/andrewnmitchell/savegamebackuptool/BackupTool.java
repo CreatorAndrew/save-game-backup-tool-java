@@ -56,11 +56,11 @@ public class BackupTool {
             for (int i = 0; i < firstRun.length; i++) firstRun[i] = true;
         }
 
-        public BackupThread(String path, int index, boolean usePrompt, double interval) {
+        public BackupThread(String path, int index, double interval, boolean usePrompt) {
             configPath = path;
             configIndex = index;
-            this.usePrompt = usePrompt;
             this.interval = interval;
+            this.usePrompt = usePrompt;
             firstRun = new boolean[1];
             firstRun[0] = true;
         }
@@ -195,7 +195,7 @@ public class BackupTool {
             boolean stopBackupTool = false;
             Scanner scanner = new Scanner(System.in);
             if (!configPath.equals("")) {
-                backupThreads.add(new BackupThread(configPath, backupThreads.size(), false, interval));
+                backupThreads.add(new BackupThread(configPath, backupThreads.size(), interval, false));
                 backupThreads.get(backupThreads.size() - 1).start();
             } else System.out.print("Enter in \"help\" or \"?\" for assistance.\n" + BackupWatchdog.prompt);
             while (configPath.equals("")) {
@@ -205,7 +205,7 @@ public class BackupTool {
                         String config = addOrRemoveConfig(scanner, configPath, configs);
                         if (!configsUsed.contains(config)) {
                             configsUsed.add(config);
-                            backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), backupThreads.size(), true, interval));
+                            backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), backupThreads.size(), interval, true));
                             backupThreads.get(backupThreads.size() - 1).start();
                         } else System.out.println("That configuration is already in use.");
                         break;
@@ -217,19 +217,19 @@ public class BackupTool {
                         break;
                     }
                     case "end":
-                    case "quit":
-                    case "exit": {
+                    case "exit":
+                    case "quit": {
                         for (BackupThread backupThread : backupThreads) backupThread.disable();
                         backupThreads = new ArrayList<BackupThread>();
                         configsUsed = new ArrayList<String>();
                         stopBackupTool = true;
                         break;
                     }
-                    case "?":
                     case "help":
+                    case "?":
                         System.out.print("Enter in \"start\" to initialize a backup configuration.\n" +
                                          "Enter in \"stop\" to suspend a backup configuration.\n" +
-                                         "Enter in \"exit\", \"quit\", or \"end\" to shut down this tool.\n" + BackupWatchdog.prompt);
+                                         "Enter in \"end\", \"exit\", or \"quit\" to shut down this tool.\n" + BackupWatchdog.prompt);
                         break;
                     case "": System.out.print(BackupWatchdog.prompt); break;
                     default: System.out.print("Invalid command\n" + BackupWatchdog.prompt); break;
