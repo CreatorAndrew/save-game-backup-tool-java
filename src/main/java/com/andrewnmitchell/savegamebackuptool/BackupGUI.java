@@ -170,8 +170,7 @@ public class BackupGUI extends JFrame {
         }
 
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            if (isSelected) setBackground(table.getBackground());
-            else setBackground(UIManager.getColor("Button.background"));
+            setBackground(UIManager.getColor("Button.background"));
             setText((value == null) ? "" : value.toString());
             return this;
         }
