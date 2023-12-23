@@ -58,10 +58,10 @@ public class BackupWatchdog {
         String newPath = path, replacement = "";
         try {
              replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
-             replacement = replacement.substring(0, replacement.lastIndexOf("/") + 1);
+             replacement = replacement.substring(0, replacement.lastIndexOf("/"));
         } catch (URISyntaxException exception) {
         }
-        if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement);
+        if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement) + "/";
         else if (path.startsWith("../")) newPath = path.replaceFirst("../", replacement.substring(0, replacement.lastIndexOf("/") + 1));
         if (System.getProperty("os.name").contains("Windows") && newPath.startsWith("/")) newPath = newPath.substring(1);
         return !newPath.equals(path) ? newPath : path;
