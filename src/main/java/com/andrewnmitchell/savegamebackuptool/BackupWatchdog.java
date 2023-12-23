@@ -58,18 +58,16 @@ public class BackupWatchdog {
         String newPath = path, replacement = "";
         try {
              replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
-             replacement = replacement.substring(0, replacement.lastIndexOf("/") + 1);
+             replacement = replacement.substring(0, replacement.lastIndexOf("/"));
         } catch (URISyntaxException exception) {
         }
-        if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement);
+        if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement + "/");
         else if (path.startsWith("../")) {
-            replacement = replacement.substring(0, replacement.lastIndexOf("/"));
             replacement = replacement.substring(0, replacement.lastIndexOf("/") + 1);
             newPath = path.replaceFirst("../", replacement);
         }
         if (System.getProperty("os.name").contains("Windows") && newPath.startsWith("/")) newPath = newPath.substring(1);
-
-        return !newPath.equals(path) ? newPath : path;
+        return newPath;
     }
 
     public static String addToTextArea(String text, JTextArea textArea) {
