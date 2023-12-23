@@ -62,11 +62,13 @@ public class BackupWatchdog {
         } catch (URISyntaxException exception) {
         }
         if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement);
-        else if (path.startsWith("../"))
+        else if (path.startsWith("../")) {
             replacement = replacement.substring(0, replacement.lastIndexOf("/"));
             replacement = replacement.substring(0, replacement.lastIndexOf("/") + 1);
             newPath = path.replaceFirst("../", replacement);
+        }
         if (System.getProperty("os.name").contains("Windows") && newPath.startsWith("/")) newPath = newPath.substring(1);
+
         return !newPath.equals(path) ? newPath : path;
     }
 
