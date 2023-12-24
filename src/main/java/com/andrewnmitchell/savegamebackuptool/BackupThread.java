@@ -44,7 +44,7 @@ public class BackupThread extends Thread {
 
         public void watchdog() {
             String stopFilePath = "./.stop" + backupConfig.getPath().substring(backupConfig.getPath().lastIndexOf("/") + 1).replace(".json", "");
-            while (!stopQueue.contains(getConfigName())) {
+            while (!stopQueue.contains(getConfigName()) && !disabled) {
                 try {
                     try {
                         Thread.sleep((long) (interval * 1000));

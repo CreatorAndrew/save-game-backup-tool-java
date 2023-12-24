@@ -120,7 +120,6 @@ public class BackupTool {
                 if (stopBackupTool) break;
             }
             scanner.close();
-            System.exit(0);
         } else {
             BackupGUI gui = new BackupGUI(configs, interval);
         }
