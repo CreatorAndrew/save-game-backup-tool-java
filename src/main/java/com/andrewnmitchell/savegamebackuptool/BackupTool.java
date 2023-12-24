@@ -98,12 +98,13 @@ public class BackupTool {
                     case "end":
                     case "exit":
                     case "quit": {
-                        for (BackupThread backupThread : backupThreads) {
-                            stopQueue.add(backupThread.getConfigName());
-                            while (!backupThread.getDisabled());
+                        for (BackupConfig config : configsUsed) {
+                            stopQueue.add(config.getName());
+                            while (!backupThreads.get(configsUsed.indexOf(config)).getDisabled()) System.out.print("");
                         }
                         backupThreads = new ArrayList<BackupThread>();
                         configsUsed = new ArrayList<BackupConfig>();
+                        stopQueue = new ArrayList<String>();
                         stopBackupTool = true;
                         break;
                     }
@@ -119,12 +120,13 @@ public class BackupTool {
                 if (stopBackupTool) break;
             }
             scanner.close();
+            System.exit(0);
         } else {
             BackupGUI gui = new BackupGUI(configs, interval);
         }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) {
         BackupTool backupTool = new BackupTool(args);
     }
 

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class BackupThread extends Thread {
         private double interval;
-        private boolean disabled = false, firstRun = false, usePrompt;
+        private boolean disabled = false, firstRun = true, usePrompt;
         private BackupTool backupTool;
         private BackupGUI gui;
         private BackupConfig backupConfig;
