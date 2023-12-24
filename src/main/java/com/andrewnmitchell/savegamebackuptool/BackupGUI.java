@@ -1,5 +1,6 @@
 package com.andrewnmitchell.savegamebackuptool;
 import javax.swing.DefaultCellEditor;
+import javax.swing.event.CellEditorListener;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -8,29 +9,31 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.event.CellEditorListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.EventObject;
-import java.awt.event.ActionListener;
 
 public class BackupGUI extends JFrame {
+    private BackupGUI self = this;
     private JScrollPane scrollPane, textScrollPane;
     private JTable table;
+    private double interval;
     protected JTextArea textArea;
     protected JButton[] buttons;
     protected final String enableLabel = "Start", disableLabel = "Stop";
     protected final int width = 512, height = 384;
-    protected ArrayList<BackupConfig> configs;
-    protected boolean[] configsUsed;
+    protected ArrayList<BackupThread> backupThreads;
+    protected ArrayList<BackupConfig> configs, configsUsed;
+    protected ArrayList<String> stopQueue;
 
     public BackupGUI(ArrayList<BackupConfig> configs, double interval) {
         try {
@@ -38,9 +41,11 @@ public class BackupGUI extends JFrame {
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException exception) {
         }
 
+        backupThreads = new ArrayList<BackupThread>();
         this.configs = configs;
-        configsUsed = new boolean[configs.size()];
-        for (int i = 0; i < configsUsed.length; i++) configsUsed[i] = false;
+        configsUsed = new ArrayList<BackupConfig>();
+        stopQueue = new ArrayList<String>();
+        this.interval = interval;
 
         initButtons();
         initComponents();
@@ -50,8 +55,16 @@ public class BackupGUI extends JFrame {
         setLocationRelativeTo(null);
 
         setVisible(true);
+    }
 
-        BackupTool backupTool = new BackupTool(this, interval);
+    public void removeConfig(BackupConfig config) {
+        if (configsUsed.contains(config)) {
+            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getName());
+            while (!backupThreads.get(configsUsed.indexOf(config)).getDisabled()) System.out.print("");
+            stopQueue.remove(configsUsed.indexOf(config));
+            backupThreads.remove(configsUsed.indexOf(config));
+            configsUsed.remove(configsUsed.indexOf(config));
+        }
     }
 
     public void drawTable(DefaultTableModel tableModel) {
@@ -193,8 +206,12 @@ public class BackupGUI extends JFrame {
         }
 
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            if (!configsUsed.contains(configs.get(row))) {
+                configsUsed.add(configs.get(row));
+                backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), stopQueue, interval, false, self));
+                backupThreads.get(backupThreads.size() - 1).start();
+            } else removeConfig(configs.get(row));
             label = (value == null) ? "" : value.toString();
-            configsUsed[row] = label.equals(enableLabel);
             button.setText(label);
             isPushed = true;
             return button;

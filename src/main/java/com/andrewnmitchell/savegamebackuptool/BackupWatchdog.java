@@ -1,19 +1,19 @@
 package com.andrewnmitchell.savegamebackuptool;
+import com.google.gson.stream.JsonReader;
+import javax.swing.JTextArea;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.text.SimpleDateFormat;
 import java.util.TimeZone;
-import javax.swing.JTextArea;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.FileReader;
-import com.google.gson.stream.JsonReader;
 
 class BackupSavePath {
     private String path;
@@ -78,16 +78,11 @@ public class BackupWatchdog {
         return text;
     }
 
-    public static boolean watchdog(String configFile, int configIndex, boolean usePrompt, boolean firstRun) throws IOException {
-        return watchdog(configFile, null, configIndex, usePrompt, firstRun);
+    public static boolean watchdog(String configFile, boolean usePrompt, boolean firstRun) throws IOException {
+        return watchdog(configFile, null, usePrompt, firstRun);
     }
 
-    public static boolean watchdog(String configFile, JTextArea textArea, int configIndex, boolean usePrompt, boolean firstRun, boolean enabled) throws IOException {
-        if (enabled) return watchdog(configFile, textArea, configIndex, usePrompt, firstRun);
-        return false;
-    }
-
-    public static boolean watchdog(String configFile, JTextArea textArea, int configIndex, boolean usePrompt, boolean firstRun) throws IOException {
+    public static boolean watchdog(String configFile, JTextArea textArea, boolean usePrompt, boolean firstRun) throws IOException {
         String home = System.getProperty("user.home").replaceAll("\\\\", "/"), backupFolder = "", backupFileNamePrefix = "";
 
         long lastBackupTime = 0;
