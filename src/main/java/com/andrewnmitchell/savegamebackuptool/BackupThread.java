@@ -62,9 +62,9 @@ public class BackupThread extends Thread {
                             removeStopFile(stopFilePath);
                             for (int i = 0; i < gui.buttons.length; i++)
                                 gui.buttons[i].setText(gui.configsUsed.contains(gui.configs.get(i)) ? gui.disableLabel : gui.enableLabel);
-                            gui.removeConfig(backupConfig);
                             gui.buttons[gui.configs.indexOf(backupConfig)].setText(gui.enableLabel);
                             gui.updateTable();
+                            gui.removeConfig(backupConfig);
                         }
                     }
                     firstRun = false;

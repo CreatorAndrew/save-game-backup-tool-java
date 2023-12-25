@@ -61,7 +61,7 @@ public class BackupGUI extends JFrame {
         if (configsUsed.contains(config)) {
             stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getName());
             while (!backupThreads.get(configsUsed.indexOf(config)).getDisabled()) System.out.print("");
-            stopQueue.remove(configsUsed.indexOf(config));
+            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getName()));
             backupThreads.remove(configsUsed.indexOf(config));
             configsUsed.remove(configsUsed.indexOf(config));
         }
