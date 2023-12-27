@@ -171,7 +171,7 @@ public class BackupWatchdog {
                 backupArchive.compress(replaceLocalDotDirectory("./") + backup, textArea);
                 if (!backupFolder.equals(replaceLocalDotDirectory("./")))
                     Files.move(Paths.get(replaceLocalDotDirectory("./") + backup),
-                                Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
+                               Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
             } else System.out.println(addToTextArea(backup + " already exists in " +
                                                     backupFolder.replaceAll("/", System.getProperty("os.name").contains("Windows") ? "\\\\" : "/") +
                                                     ".\nBackup cancelled", textArea));
