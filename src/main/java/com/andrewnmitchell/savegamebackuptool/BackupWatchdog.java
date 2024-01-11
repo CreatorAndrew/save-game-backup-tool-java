@@ -84,6 +84,7 @@ public class BackupWatchdog {
         long lastBackupTime = 0;
 
         ArrayList<BackupSavePath> savePaths = new ArrayList<BackupSavePath>();
+        BackupSavePath backupPath = new BackupSavePath();
 
         configFile = replaceLocalDotDirectory("./" + configFile);
 
@@ -120,6 +121,7 @@ public class BackupWatchdog {
                             case "isAbsolute": props.setPathIsAbsolute(reader.nextBoolean()); break;
                         }
                     }
+                    backupPath = props;
                     backupFolder = (props.getPathIsAbsolute() ? "" : (home + "/")) + props.getPath().replaceAll("\\\\", "/");
                     backupFolder = replaceLocalDotDirectory(backupFolder);
                     reader.endObject();
@@ -175,13 +177,12 @@ public class BackupWatchdog {
             // Rewrite the JSON file
             String configOutput = "{\n    \"searchableSavePaths\": [";
             for (int i = 0; i < savePaths.size(); i++)
-                configOutput += "\n        {\n            \"path\": \"" + savePaths.get(i).getPath() + "\",\n            "
-                              + "\"isAbsolute\": " + savePaths.get(i).getPathIsAbsolute() + "\n        }" + (i < savePaths.size() - 1 ? "," : "");
-            configOutput += "\n    ],\n    \"backupPath\": {\n        \"path\": \""
-                          + backupFolder.substring(backupFolder.contains(home + "/") ? (home + "/").length() : 0, backupFolder.length())
-                          + "\",\n        \"isAbsolute\": " + !backupFolder.contains(home + "/") + "\n    },"
-                          + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
-                          + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
+                configOutput += "\n        {\n            \"path\": \"" + savePaths.get(i).getPath() + "\",\n            \"isAbsolute\": "
+                              + savePaths.get(i).getPathIsAbsolute() + "\n        }" + (i < savePaths.size() - 1 ? "," : "");
+            configOutput += "\n    ],\n    \"backupPath\": {\n        \"path\": \"" + backupPath.getPath()
+                          + "\",\n        \"isAbsolute\": " + backupPath.getPathIsAbsolute()
+                          + "\n    },\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix
+                          + "\",\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
             FileWriter fileWriter = new FileWriter(configFile);
             BufferedWriter writer = new BufferedWriter(fileWriter);
             writer.write(configOutput.replaceAll("\n", System.getProperty("os.name").contains("Windows") ? "\r\n" : "\n"));
