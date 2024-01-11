@@ -1,5 +1,4 @@
 package com.andrewnmitchell.savegamebackuptool;
-import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import java.io.BufferedWriter;
 import java.io.File;
