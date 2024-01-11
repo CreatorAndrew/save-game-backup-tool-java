@@ -1,5 +1,4 @@
 package com.andrewnmitchell.savegamebackuptool;
-import javax.swing.JTextArea;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -18,19 +17,19 @@ public class BackupUtils {
         fileList = new ArrayList<String>();
     }
 
-    public void compress(String zipFile, JTextArea textArea) {
+    public void compress(String zipFile, BackupGUI gui) {
         byte[] buffer = new byte[1024];
         FileOutputStream fileOutputStream = null;
         ZipOutputStream zipOutputStream = null;
         try {
             fileOutputStream = new FileOutputStream(zipFile);
             zipOutputStream = new ZipOutputStream(fileOutputStream);
-            System.out.print(BackupWatchdog.addToTextArea("Creating backup archive: " + zipFile.substring(zipFile.lastIndexOf("/") + 1), textArea));
+            System.out.print(BackupWatchdog.addToTextArea("Creating backup archive: " + zipFile.substring(zipFile.lastIndexOf("/") + 1), gui));
             System.out.println();
             FileInputStream fileInputStream = null;
 
             for (String file : this.fileList) {
-                System.out.println(BackupWatchdog.addToTextArea("Added " + file, textArea));
+                System.out.println(BackupWatchdog.addToTextArea("Added " + file, gui));
                 ZipEntry zipEntry = new ZipEntry(file);
                 zipOutputStream.putNextEntry(zipEntry);
                 try {
@@ -43,7 +42,7 @@ public class BackupUtils {
             }
 
             zipOutputStream.closeEntry();
-            System.out.println(BackupWatchdog.addToTextArea("Backup successful", textArea));
+            System.out.println(BackupWatchdog.addToTextArea("Backup successful", gui));
         } catch (IOException exception) {
         } finally {
             try {

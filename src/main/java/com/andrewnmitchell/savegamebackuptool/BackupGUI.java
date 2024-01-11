@@ -23,17 +23,17 @@ import java.util.ArrayList;
 import java.util.EventObject;
 
 public class BackupGUI extends JFrame {
+    private final String enableLabel = "Start", disableLabel = "Stop";
+    private final int width = 512, height = 384;
     private BackupGUI self = this;
     private JScrollPane scrollPane, textScrollPane;
     private JTable table;
+    private JTextArea textArea;
+    private JButton[] buttons;
     private double interval;
-    protected JTextArea textArea;
-    protected JButton[] buttons;
-    protected final String enableLabel = "Start", disableLabel = "Stop";
-    protected final int width = 512, height = 384;
-    protected ArrayList<BackupThread> backupThreads;
-    protected ArrayList<BackupConfig> configs, configsUsed;
-    protected ArrayList<String> stopQueue;
+    private ArrayList<BackupThread> backupThreads;
+    private ArrayList<BackupConfig> configs, configsUsed;
+    private ArrayList<String> stopQueue;
 
     public BackupGUI(ArrayList<BackupConfig> configs, double interval) {
         try {
@@ -55,16 +55,6 @@ public class BackupGUI extends JFrame {
         setLocationRelativeTo(null);
 
         setVisible(true);
-    }
-
-    public void removeConfig(BackupConfig config) {
-        if (configsUsed.contains(config)) {
-            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getName());
-            while (!backupThreads.get(configsUsed.indexOf(config)).getDisabled()) System.out.print("");
-            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getName()));
-            backupThreads.remove(configsUsed.indexOf(config));
-            configsUsed.remove(configsUsed.indexOf(config));
-        }
     }
 
     public void drawTable(DefaultTableModel tableModel) {
@@ -128,9 +118,12 @@ public class BackupGUI extends JFrame {
         table.getTableHeader().setUI(null);
     }
 
-    public void updateTable() {
+    public void redrawTable(BackupConfig config) {
+        for (int i = 0; i < buttons.length; i++) buttons[i].setText(configsUsed.contains(configs.get(i)) ? disableLabel : enableLabel);
+        buttons[configs.indexOf(config)].setText(enableLabel);
         DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
         drawTable(tableModel);
+        removeConfig(config);
     }
 
     public void initComponents() {
@@ -230,6 +223,21 @@ public class BackupGUI extends JFrame {
 
         protected void fireEditingStopped() {
             super.fireEditingStopped();
+        }
+    }
+
+    public void addToTextArea(String text) {
+        textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
+        textArea.getCaret().setDot(Integer.MAX_VALUE);
+    }
+
+    public void removeConfig(BackupConfig config) {
+        if (configsUsed.contains(config)) {
+            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getName());
+            while (backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
+            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getName()));
+            backupThreads.remove(configsUsed.indexOf(config));
+            configsUsed.remove(configsUsed.indexOf(config));
         }
     }
 }

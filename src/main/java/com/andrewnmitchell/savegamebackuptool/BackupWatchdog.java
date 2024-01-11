@@ -1,6 +1,6 @@
 package com.andrewnmitchell.savegamebackuptool;
+import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
-import javax.swing.JTextArea;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -70,11 +70,8 @@ public class BackupWatchdog {
         return newPath;
     }
 
-    public static String addToTextArea(String text, JTextArea textArea) {
-        if (textArea != null) {
-            textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
-            textArea.getCaret().setDot(Integer.MAX_VALUE);
-        }
+    public static String addToTextArea(String text, BackupGUI gui) {
+        if (gui != null) gui.addToTextArea(text);
         return text;
     }
 
@@ -82,7 +79,7 @@ public class BackupWatchdog {
         return watchdog(configFile, null, usePrompt, firstRun);
     }
 
-    public static boolean watchdog(String configFile, JTextArea textArea, boolean usePrompt, boolean firstRun) throws IOException {
+    public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt, boolean firstRun) throws IOException {
         String home = System.getProperty("user.home").replaceAll("\\\\", "/"), backupFolder = "", backupFileNamePrefix = "";
 
         long lastBackupTime = 0;
@@ -146,9 +143,9 @@ public class BackupWatchdog {
         }
         if (savePath == null) {
             if (firstRun) {
-                if (textArea == null && usePrompt) System.out.println();
-                System.out.println(addToTextArea("No save file found", textArea));
-                if (textArea == null && usePrompt) System.out.print(prompt);
+                if (gui == null && usePrompt) System.out.println();
+                System.out.println(addToTextArea("No save file found", gui));
+                if (gui == null && usePrompt) System.out.print(prompt);
                 return true;
             }
             // Sometimes on Linux, when Steam launches a Windows game, the Proton prefix path becomes briefly inaccessible.
@@ -164,26 +161,26 @@ public class BackupWatchdog {
         if (getModifiedDate(savePath) > lastBackupTime) {
             lastBackupTime = getModifiedDate(savePath);
 
-            if (textArea == null && usePrompt) System.out.println();
+            if (gui == null && usePrompt) System.out.println();
             String backup = backupFileNamePrefix + "+" + lastBackupTime + ".zip";
             if (Files.notExists(Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
                 // Create the backup archive file
-                backupArchive.compress(replaceLocalDotDirectory("./") + backup, textArea);
+                backupArchive.compress(replaceLocalDotDirectory("./") + backup, gui);
                 if (!backupFolder.equals(replaceLocalDotDirectory("./")))
                     Files.move(Paths.get(replaceLocalDotDirectory("./") + backup),
                                Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
             } else System.out.println(addToTextArea(backup + " already exists in " +
                                                     backupFolder.replaceAll("/", System.getProperty("os.name").contains("Windows") ? "\\\\" : "/") +
-                                                    ".\nBackup cancelled", textArea));
+                                                    ".\nBackup cancelled", gui));
 
             // Rewrite the JSON file
             String configOutput = "{\n    \"searchableSavePaths\": [";
             for (int i = 0; i < savePaths.size(); i++)
-                configOutput += "\n        {\"path\": \"" + savePaths.get(i).getPath()
-                              + "\", \"isAbsolute\": " + savePaths.get(i).getPathIsAbsolute() + "}" + (i < savePaths.size() - 1 ? "," : "");
-            configOutput += "\n    ],\n    \"backupPath\": {\"path\": \""
+                configOutput += "\n        {\n            \"path\": \"" + savePaths.get(i).getPath() + "\",\n            "
+                              + "\"isAbsolute\": " + savePaths.get(i).getPathIsAbsolute() + "\n        }" + (i < savePaths.size() - 1 ? "," : "");
+            configOutput += "\n    ],\n    \"backupPath\": {\n        \"path\": \""
                           + backupFolder.substring(backupFolder.contains(home + "/") ? (home + "/").length() : 0, backupFolder.length())
-                          + "\", \"isAbsolute\": " + !backupFolder.contains(home + "/") + "},"
+                          + "\",\n        \"isAbsolute\": " + !backupFolder.contains(home + "/") + "\n    },"
                           + "\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix + "\","
                           + "\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
             FileWriter fileWriter = new FileWriter(configFile);
@@ -191,7 +188,7 @@ public class BackupWatchdog {
             writer.write(configOutput.replaceAll("\n", System.getProperty("os.name").contains("Windows") ? "\r\n" : "\n"));
             writer.close();
 
-            if (textArea == null && usePrompt) System.out.print(prompt);
+            if (gui == null && usePrompt) System.out.print(prompt);
         }
         return false;
     }

@@ -1,7 +1,13 @@
 {
     "configurations": [
-        {"name": "Bully: Scholarship Edition", "file": "Bully.json"},
-        {"name": "Second Backup Configuration Test", "file": "Test.json"}
+        {
+            "name": "Bully: Scholarship Edition",
+            "file": "Bully.json"
+        },
+        {
+            "name": "Second Backup Configuration Test",
+            "file": "Test.json"
+        }
     ],
     "default": "Bully: Scholarship Edition",
     "interval": 0.1

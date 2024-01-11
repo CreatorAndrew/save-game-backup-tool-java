@@ -100,7 +100,7 @@ public class BackupTool {
                     case "quit": {
                         for (BackupConfig config : configsUsed) {
                             stopQueue.add(config.getName());
-                            while (!backupThreads.get(configsUsed.indexOf(config)).getDisabled()) System.out.print("");
+                            while (backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
                         }
                         backupThreads = new ArrayList<BackupThread>();
                         configsUsed = new ArrayList<BackupConfig>();
@@ -132,7 +132,7 @@ public class BackupTool {
     public void removeConfig(BackupConfig config, boolean wait) {
         if (configsUsed.contains(config)) {
             stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getName());
-            while (wait && !backupThreads.get(configsUsed.indexOf(config)).getDisabled()) System.out.print("");
+            while (wait && backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
             stopQueue.remove(configsUsed.indexOf(config));
             backupThreads.remove(configsUsed.indexOf(config));
             configsUsed.remove(configsUsed.indexOf(config));
