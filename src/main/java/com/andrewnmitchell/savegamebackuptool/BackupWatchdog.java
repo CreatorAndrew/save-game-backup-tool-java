@@ -34,7 +34,7 @@ class BackupSavePath {
         this.path = path;
     }
 
-    public Boolean getPathIsAbsolute(){
+    public Boolean getPathIsAbsolute() {
         return isAbsolute;
     }
 
