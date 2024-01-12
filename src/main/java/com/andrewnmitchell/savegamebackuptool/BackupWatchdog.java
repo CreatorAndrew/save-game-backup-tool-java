@@ -1,6 +1,7 @@
 package com.andrewnmitchell.savegamebackuptool;
-import com.google.gson.stream.JsonReader;
-import java.io.BufferedWriter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -10,9 +11,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
+
+class BackupConfigContents {
+    private BackupSavePath[] searchableSavePaths;
+    private BackupSavePath backupPath;
+    private String backupFileNamePrefix;
+    private long lastBackupTime;
+
+    public BackupSavePath[] getSearchableSavePaths() {
+        return searchableSavePaths;
+    }
+
+    public BackupSavePath getBackupPath() {
+        return backupPath;
+    }
+
+    public String getBackupFileNamePrefix() {
+        return backupFileNamePrefix;
+    }
+
+    public long getLastBackupTime() {
+        return lastBackupTime;
+    }
+
+    public void setLastBackupTime(long time) {
+        lastBackupTime = time;
+    }
+}
 
 class BackupSavePath {
     private String path;
@@ -44,6 +71,10 @@ class BackupSavePath {
 }
 
 public class BackupWatchdog {
+    private static boolean isRunningOnWindows() {
+        return System.getProperty("os.name").contains("Windows");
+    }
+
     private static Long getModifiedDate(Path savePath) throws IOException {
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
         date.setTimeZone(TimeZone.getDefault());
@@ -65,7 +96,7 @@ public class BackupWatchdog {
             replacement = replacement.substring(0, replacement.lastIndexOf("/") + 1);
             newPath = path.replaceFirst("../", replacement);
         }
-        if (System.getProperty("os.name").contains("Windows") && newPath.startsWith("/")) newPath = newPath.substring(1);
+        if (isRunningOnWindows() && newPath.startsWith("/")) newPath = newPath.substring(1);
         return newPath;
     }
 
@@ -79,70 +110,29 @@ public class BackupWatchdog {
     }
 
     public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt, boolean firstRun) throws IOException {
-        String home = System.getProperty("user.home").replaceAll("\\\\", "/"), backupFolder = "", backupFileNamePrefix = "";
-
-        long lastBackupTime = 0;
-
-        ArrayList<BackupSavePath> savePaths = new ArrayList<BackupSavePath>();
-        BackupSavePath backupPath = new BackupSavePath();
+        String home = System.getProperty("user.home").replaceAll("\\\\", "/");
 
         configFile = replaceLocalDotDirectory("./" + configFile);
 
-        JsonReader reader = new JsonReader(new FileReader(configFile));
-        reader.beginObject();
-        while (reader.hasNext()) {
-            String name = reader.nextName();
-            switch (name) {
-                case "searchableSavePaths": {
-                    reader.beginArray();
-                    while (reader.hasNext()) {
-                        BackupSavePath props = new BackupSavePath();
-                        reader.beginObject();
-                        while (reader.hasNext()) {
-                            name = reader.nextName();
-                            switch (name) {
-                                case "path": props.setPath(reader.nextString()); break;
-                                case "isAbsolute": props.setPathIsAbsolute(reader.nextBoolean()); break;
-                            }
-                        }
-                        reader.endObject();
-                        savePaths.add(props);
-                    }
-                    reader.endArray();
-                    break;
-                }
-                case "backupPath": {
-                    BackupSavePath props = new BackupSavePath();
-                    reader.beginObject();
-                    while (reader.hasNext()) {
-                        name = reader.nextName();
-                        switch (name) {
-                            case "path": props.setPath(reader.nextString()); break;
-                            case "isAbsolute": props.setPathIsAbsolute(reader.nextBoolean()); break;
-                        }
-                    }
-                    backupPath = props;
-                    backupFolder = (props.getPathIsAbsolute() ? "" : (home + "/")) + props.getPath().replaceAll("\\\\", "/");
-                    backupFolder = replaceLocalDotDirectory(backupFolder);
-                    reader.endObject();
-                    break;
-                }
-                case "backupFileNamePrefix": backupFileNamePrefix = reader.nextString(); break;
-                case "lastBackupTime": lastBackupTime = reader.nextLong(); break;
-            }
-        }
-        reader.endObject();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        FileReader reader = new FileReader(configFile);
+        BackupConfigContents config = gson.fromJson(reader, BackupConfigContents.class);
+        reader.close();
 
-        Path savePath = null;
-        for (int i = 0; i < savePaths.size(); i++) {
-            String savePathString = (savePaths.get(i).getPathIsAbsolute() ? "" : (home + "/")) + savePaths.get(i).getPath();
-            savePathString = replaceLocalDotDirectory(savePathString);
-            if (Files.exists(Paths.get(savePathString))) {
-                savePath = Paths.get(savePathString);
+        String backupFolder = replaceLocalDotDirectory(
+            (config.getBackupPath().getPathIsAbsolute() ? "" : (home + "/")) + config.getBackupPath().getPath().replaceAll("\\\\", "/")
+        );
+
+        Path saveFile = null;
+        for (int i = 0; i < config.getSearchableSavePaths().length; i++) {
+            String saveFileString = (config.getSearchableSavePaths()[i].getPathIsAbsolute() ? "" : (home + "/")) + config.getSearchableSavePaths()[i].getPath();
+            saveFileString = replaceLocalDotDirectory(saveFileString);
+            if (Files.exists(Paths.get(saveFileString))) {
+                saveFile = Paths.get(saveFileString);
                 break;
             }
         }
-        if (savePath == null) {
+        if (saveFile == null) {
             if (firstRun) {
                 if (gui == null && usePrompt) System.out.println();
                 System.out.println(addToTextArea("No save file found", gui));
@@ -152,41 +142,35 @@ public class BackupWatchdog {
             // Sometimes on Linux, when Steam launches a Windows game, the Proton prefix path becomes briefly inaccessible.
             return false;
         }
-        String saveFolder = savePath.toString().substring(0, savePath.toString().replaceAll("\\\\", "/").lastIndexOf("/") + 1);
+        String saveFolder = saveFile.toString().substring(0, saveFile.toString().replaceAll("\\\\", "/").lastIndexOf("/") + 1);
 
         BackupUtils backupArchive = new BackupUtils(saveFolder);
         backupArchive.generateFileList(new File(saveFolder));
 
         if (Files.notExists(Paths.get(backupFolder))) Files.createDirectories(Paths.get(backupFolder));
 
-        if (getModifiedDate(savePath) > lastBackupTime) {
-            lastBackupTime = getModifiedDate(savePath);
+        if (getModifiedDate(saveFile) > config.getLastBackupTime()) {
+            config.setLastBackupTime(getModifiedDate(saveFile));
 
             if (gui == null && usePrompt) System.out.println();
-            String backup = backupFileNamePrefix + "+" + lastBackupTime + ".zip";
+            String backup = config.getBackupFileNamePrefix() + "+" + config.getLastBackupTime() + ".zip";
             if (Files.notExists(Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
                 // Create the backup archive file
                 backupArchive.compress(replaceLocalDotDirectory("./") + backup, gui);
-                if (!backupFolder.equals(replaceLocalDotDirectory("./")))
-                    Files.move(Paths.get(replaceLocalDotDirectory("./") + backup),
-                               Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
-            } else System.out.println(addToTextArea(backup + " already exists in " +
-                                                    backupFolder.replaceAll("/", System.getProperty("os.name").contains("Windows") ? "\\\\" : "/") +
-                                                    ".\nBackup cancelled", gui));
+                if (!backupFolder.equals(replaceLocalDotDirectory("./"))) Files.move(
+                    Paths.get(replaceLocalDotDirectory("./") + backup), Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup)
+                );
+            } else System.out.println(addToTextArea(
+                backup + " already exists in " + backupFolder.replaceAll("/", isRunningOnWindows() ? "\\\\" : "/") + ".\nBackup cancelled", gui
+            ));
 
             // Rewrite the JSON file
-            String configOutput = "{\n    \"searchableSavePaths\": [";
-            for (int i = 0; i < savePaths.size(); i++)
-                configOutput += "\n        {\n            \"path\": \"" + savePaths.get(i).getPath() + "\",\n            \"isAbsolute\": "
-                              + savePaths.get(i).getPathIsAbsolute() + "\n        }" + (i < savePaths.size() - 1 ? "," : "");
-            configOutput += "\n    ],\n    \"backupPath\": {\n        \"path\": \"" + backupPath.getPath()
-                          + "\",\n        \"isAbsolute\": " + backupPath.getPathIsAbsolute()
-                          + "\n    },\n    \"backupFileNamePrefix\": \"" + backupFileNamePrefix
-                          + "\",\n    \"lastBackupTime\": "+ lastBackupTime + "\n}";
             FileWriter fileWriter = new FileWriter(configFile);
-            BufferedWriter writer = new BufferedWriter(fileWriter);
-            writer.write(configOutput.replaceAll("\n", System.getProperty("os.name").contains("Windows") ? "\r\n" : "\n"));
+            JsonWriter writer = gson.newJsonWriter(fileWriter);
+            writer.setIndent("    ");
+            gson.toJson(gson.toJsonTree(config), writer);
             writer.close();
+            fileWriter.close();
 
             if (gui == null && usePrompt) System.out.print(prompt);
         }

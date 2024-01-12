@@ -2,7 +2,7 @@ package com.andrewnmitchell.savegamebackuptool;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.List;
 
 public class BackupThread extends Thread {
     private double interval;
@@ -10,9 +10,9 @@ public class BackupThread extends Thread {
     private BackupTool backupTool;
     private BackupGUI gui;
     private BackupConfig config;
-    private ArrayList<String> stopQueue;
+    private List<String> stopQueue;
 
-    public BackupThread(BackupConfig config, ArrayList<String> stopQueue, double interval, boolean usePrompt, BackupTool backupTool) {
+    public BackupThread(BackupConfig config, List<String> stopQueue, double interval, boolean usePrompt, BackupTool backupTool) {
         gui = null;
         this.backupTool = backupTool;
         this.config = config;
@@ -21,7 +21,7 @@ public class BackupThread extends Thread {
         this.usePrompt = usePrompt;
     }
 
-    public BackupThread(BackupConfig config, ArrayList<String> stopQueue, double interval, boolean usePrompt, BackupGUI gui) {
+    public BackupThread(BackupConfig config, List<String> stopQueue, double interval, boolean usePrompt, BackupGUI gui) {
         this.gui = gui;
         backupTool = null;
         this.config = config;

@@ -1,14 +1,36 @@
 package com.andrewnmitchell.savegamebackuptool;
-import com.google.gson.stream.JsonReader;
+import com.google.gson.annotations.SerializedName;
+import com.google.gson.Gson;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
+class MasterConfig {
+    private BackupConfig[] configurations;
+    @SerializedName("default")
+    private String defaultConfigName;
+    private double interval;
+
+    public BackupConfig[] getConfigurations() {
+        return configurations;
+    }
+
+    public String getDefaultConfigName() {
+        return defaultConfigName;
+    }
+
+    public double getInterval() {
+        return interval;
+    }
+}
+
 public class BackupTool {
-    private ArrayList<BackupThread> backupThreads;
-    private ArrayList<BackupConfig> configs, configsUsed;
-    private ArrayList<String> stopQueue;
+    private List<BackupThread> backupThreads;
+    private List<BackupConfig> configs, configsUsed;
+    private List<String> stopQueue;
 
     public BackupTool(String args[]) {
         try {
@@ -18,40 +40,13 @@ public class BackupTool {
     }
 
     public void run(String args[]) throws IOException {
+        MasterConfig masterConfig = (new Gson()).fromJson(
+            new FileReader(BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json")), MasterConfig.class
+        );
+        String configPath = "";
         backupThreads = new ArrayList<BackupThread>();
-        configs = new ArrayList<BackupConfig>();
+        configs = Arrays.asList(masterConfig.getConfigurations());
         configsUsed = new ArrayList<BackupConfig>();
-        String configPath = "", defaultConfigName = "", masterConfigFile = BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json");
-        double interval = 0;
-
-        JsonReader reader = new JsonReader(new FileReader(masterConfigFile));
-        reader.beginObject();
-        while (reader.hasNext()) {
-            String name = reader.nextName();
-            switch (name) {
-                case "configurations": {
-                    reader.beginArray();
-                    while (reader.hasNext()) {
-                        BackupConfig props = new BackupConfig();
-                        reader.beginObject();
-                        while (reader.hasNext()) {
-                            name = reader.nextName();
-                            switch (name) {
-                                case "name": props.setName(reader.nextString()); break;
-                                case "file": props.setPath(reader.nextString()); break;
-                            }
-                        }
-                        reader.endObject();
-                        configs.add(props);
-                    }
-                    reader.endArray();
-                    break;
-                }
-                case "default": defaultConfigName = reader.nextString(); break;
-                case "interval": interval = reader.nextDouble(); break;
-            }
-        }
-        reader.endObject();
 
         boolean skipChoice = false, noGUI = false;
         for (int i = 0; i < args.length; i++)
@@ -61,7 +56,7 @@ public class BackupTool {
             }
 
         for (int i = 0; i < configs.size() && skipChoice; i++)
-            if (configs.get(i).getName().equals(defaultConfigName)) configPath = configs.get(i).getPath();
+            if (configs.get(i).getName().equals(masterConfig.getDefaultConfigName())) configPath = configs.get(i).getPath();
 
         for (int i = 0; i < args.length && args.length > 1 && !skipChoice; i++)
             if (args[i].toLowerCase().equals("--config") && i < args.length - 1) {
@@ -74,7 +69,9 @@ public class BackupTool {
             boolean stopBackupTool = false;
             Scanner scanner = new Scanner(System.in);
             if (!configPath.equals("")) {
-                backupThreads.add(new BackupThread(new BackupConfig(defaultConfigName, configPath), stopQueue, interval, false, this));
+                backupThreads.add(new BackupThread(
+                    new BackupConfig(masterConfig.getDefaultConfigName(), configPath), stopQueue, masterConfig.getInterval(), false, this
+                ));
                 backupThreads.get(backupThreads.size() - 1).start();
             } else System.out.print("Enter in \"help\" or \"?\" for assistance.\n" + BackupWatchdog.prompt);
             while (configPath.equals("")) {
@@ -84,7 +81,9 @@ public class BackupTool {
                         BackupConfig config = addOrRemoveConfig(scanner, configPath, configs);
                         if (!configsUsed.contains(config)) {
                             configsUsed.add(config);
-                            backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), stopQueue, interval, true, this));
+                            backupThreads.add(new BackupThread(
+                                configsUsed.get(configsUsed.size() - 1), stopQueue, masterConfig.getInterval(), true, this
+                            ));
                             backupThreads.get(backupThreads.size() - 1).start();
                         } else System.out.println("That configuration is already in use.");
                         break;
@@ -110,9 +109,11 @@ public class BackupTool {
                     }
                     case "help":
                     case "?":
-                        System.out.print("Enter in \"start\" to initialize a backup configuration.\n" +
-                                         "Enter in \"stop\" to suspend a backup configuration.\n" +
-                                         "Enter in \"end\", \"exit\", or \"quit\" to shut down this tool.\n" + BackupWatchdog.prompt);
+                        System.out.print(
+                            "Enter in \"start\" to initialize a backup configuration.\n" +
+                            "Enter in \"stop\" to suspend a backup configuration.\n" +
+                            "Enter in \"end\", \"exit\", or \"quit\" to shut down this tool.\n" + BackupWatchdog.prompt
+                        );
                         break;
                     case "": System.out.print(BackupWatchdog.prompt); break;
                     default: System.out.print("Invalid command\n" + BackupWatchdog.prompt); break;
@@ -121,7 +122,7 @@ public class BackupTool {
             }
             scanner.close();
         } else {
-            BackupGUI gui = new BackupGUI(configs, interval);
+            BackupGUI gui = new BackupGUI(configs, masterConfig.getInterval());
         }
     }
 
@@ -143,7 +144,7 @@ public class BackupTool {
         removeConfig(config, true);
     }
 
-    public BackupConfig addOrRemoveConfig(Scanner input, String configPath, ArrayList<BackupConfig> configs) {
+    public BackupConfig addOrRemoveConfig(Scanner input, String configPath, List<BackupConfig> configs) {
         BackupConfig config = null;
         if (configPath.equals("")) {
             System.out.println("Select one of the following configurations:");

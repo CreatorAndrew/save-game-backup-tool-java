@@ -20,6 +20,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.EventObject;
 
 public class BackupGUI extends JFrame {
@@ -31,11 +32,11 @@ public class BackupGUI extends JFrame {
     private JTextArea textArea;
     private JButton[] buttons;
     private double interval;
-    private ArrayList<BackupThread> backupThreads;
-    private ArrayList<BackupConfig> configs, configsUsed;
-    private ArrayList<String> stopQueue;
+    private List<BackupThread> backupThreads;
+    private List<BackupConfig> configs, configsUsed;
+    private List<String> stopQueue;
 
-    public BackupGUI(ArrayList<BackupConfig> configs, double interval) {
+    public BackupGUI(List<BackupConfig> configs, double interval) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException exception) {
