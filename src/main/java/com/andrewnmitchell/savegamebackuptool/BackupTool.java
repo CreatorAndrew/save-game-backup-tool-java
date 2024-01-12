@@ -35,7 +35,7 @@ public class BackupTool {
     public BackupTool(String args[]) {
         try {
             run(args);
-        } catch (IOException exception) {
+        } catch (IOException e) {
         }
     }
 
@@ -110,8 +110,7 @@ public class BackupTool {
                     case "help":
                     case "?":
                         System.out.print(
-                            "Enter in \"start\" to initialize a backup configuration.\n" +
-                            "Enter in \"stop\" to suspend a backup configuration.\n" +
+                            "Enter in \"start\" to initialize a backup configuration.\nEnter in \"stop\" to suspend a backup configuration.\n" +
                             "Enter in \"end\", \"exit\", or \"quit\" to shut down this tool.\n" + BackupWatchdog.prompt
                         );
                         break;
@@ -158,7 +157,7 @@ public class BackupTool {
                         System.out.println("Not a valid option number. Try again.");
                         choice = "";
                     }
-                } catch (NumberFormatException exception) {
+                } catch (NumberFormatException e) {
                     System.out.println("Invalid input value. Try again with a numeric value.");
                     choice = "";
                 }

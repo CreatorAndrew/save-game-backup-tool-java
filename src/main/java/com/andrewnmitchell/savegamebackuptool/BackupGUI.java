@@ -39,7 +39,7 @@ public class BackupGUI extends JFrame {
     public BackupGUI(List<BackupConfig> configs, double interval) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException exception) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException e) {
         }
 
         backupThreads = new ArrayList<BackupThread>();
@@ -206,7 +206,7 @@ public class BackupGUI extends JFrame {
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
             if (!configsUsed.contains(configs.get(row))) {
                 configsUsed.add(configs.get(row));
-                backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), stopQueue, interval, false, self));
+                backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), stopQueue, interval, self));
                 backupThreads.get(backupThreads.size() - 1).start();
             } else removeConfig(configs.get(row));
             label = (value == null) ? "" : value.toString();

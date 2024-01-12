@@ -43,11 +43,11 @@ public class BackupUtils {
 
             zipOutputStream.closeEntry();
             System.out.println(BackupWatchdog.addToTextArea("Backup successful", gui));
-        } catch (IOException exception) {
+        } catch (IOException e) {
         } finally {
             try {
                 zipOutputStream.close();
-            } catch (IOException exception) {
+            } catch (IOException e) {
             }
         }
     }

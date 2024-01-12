@@ -87,9 +87,9 @@ public class BackupWatchdog {
     public static String replaceLocalDotDirectory(String path) {
         String newPath = path, replacement = "";
         try {
-             replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
-             replacement = replacement.substring(0, replacement.lastIndexOf("/"));
-        } catch (URISyntaxException exception) {
+            replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
+            replacement = replacement.substring(0, replacement.lastIndexOf("/"));
+        } catch (URISyntaxException e) {
         }
         if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement + "/");
         else if (path.startsWith("../")) {
@@ -103,10 +103,6 @@ public class BackupWatchdog {
     public static String addToTextArea(String text, BackupGUI gui) {
         if (gui != null) gui.addToTextArea(text);
         return text;
-    }
-
-    public static boolean watchdog(String configFile, boolean usePrompt, boolean firstRun) throws IOException {
-        return watchdog(configFile, null, usePrompt, firstRun);
     }
 
     public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt, boolean firstRun) throws IOException {

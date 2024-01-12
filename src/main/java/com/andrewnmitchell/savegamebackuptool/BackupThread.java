@@ -12,22 +12,21 @@ public class BackupThread extends Thread {
     private BackupConfig config;
     private List<String> stopQueue;
 
+    public BackupThread(BackupConfig config, List<String> stopQueue, double interval, BackupGUI gui) {
+        this(config, stopQueue, interval, false, null, gui);
+    }
+
     public BackupThread(BackupConfig config, List<String> stopQueue, double interval, boolean usePrompt, BackupTool backupTool) {
-        gui = null;
+        this(config, stopQueue, interval, usePrompt, backupTool, null);
+    }
+
+    public BackupThread(BackupConfig config, List<String> stopQueue, double interval, boolean usePrompt, BackupTool backupTool, BackupGUI gui) {
+        this.gui = gui;
         this.backupTool = backupTool;
         this.config = config;
         this.stopQueue = stopQueue;
         this.interval = interval;
         this.usePrompt = usePrompt;
-    }
-
-    public BackupThread(BackupConfig config, List<String> stopQueue, double interval, boolean usePrompt, BackupGUI gui) {
-        this.gui = gui;
-        backupTool = null;
-        this.config = config;
-        this.stopQueue = stopQueue;
-        this.interval = interval;
-        usePrompt = false;
     }
 
     public String getConfigName() {
@@ -39,43 +38,37 @@ public class BackupThread extends Thread {
     }
 
     public void run() {
-        watchdog();
+        try {
+            watchdog();
+        } catch (IOException e) {
+        }
     }
 
-    public void watchdog() {
-        String stopFilePath = "./.stop" + config.getPath().substring(config.getPath().lastIndexOf("/") + 1).replace(".json", "");
+    public void watchdog() throws IOException {
+        String stopFilePath = BackupWatchdog.replaceLocalDotDirectory(
+            "./.stop" + config.getPath().substring(config.getPath().lastIndexOf("/") + 1).replace(".json", "")
+        );
         while (!stopQueue.contains(getConfigName()) && enabled) {
             try {
-                try {
-                    Thread.sleep((long) (interval * 1000));
-                } catch (InterruptedException exception) {
-                }
-                if (gui == null) {
-                    if (BackupWatchdog.watchdog(config.getPath(), usePrompt, firstRun)
-                        || Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)))) {
-                        removeStopFile(stopFilePath);
-                        backupTool.removeConfig(config);
-                    }
-                } else {
-                    if (BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun)
-                        || Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)))) {
-                        removeStopFile(stopFilePath);
-                        gui.resetButton(config);
-                    }
-                }
-                firstRun = false;
-            } catch (IOException exception) {
+                Thread.sleep((long) (interval * 1000));
+            } catch (InterruptedException e) {
             }
+            if (BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun) || Files.exists(Paths.get(stopFilePath))) {
+                removeStopFile(stopFilePath);
+                if (gui == null) backupTool.removeConfig(config);
+                else gui.resetButton(config);
+            }
+            firstRun = false;
         }
         enabled = false;
     }
 
     private void removeStopFile(String stopFilePath) {
-        while (Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath))))
+        while (Files.exists(Paths.get(stopFilePath)))
             try {
-                Files.delete(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)));
+                Files.delete(Paths.get(stopFilePath));
             // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
-            } catch (IOException exception) {
+            } catch (IOException e) {
             }
         enabled = false;
     }
