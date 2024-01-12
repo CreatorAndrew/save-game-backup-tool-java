@@ -60,7 +60,7 @@ public class BackupThread extends Thread {
                     if (BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun)
                         || Files.exists(Paths.get(BackupWatchdog.replaceLocalDotDirectory(stopFilePath)))) {
                         removeStopFile(stopFilePath);
-                        gui.redrawTable(config);
+                        gui.resetButton(config);
                     }
                 }
                 firstRun = false;

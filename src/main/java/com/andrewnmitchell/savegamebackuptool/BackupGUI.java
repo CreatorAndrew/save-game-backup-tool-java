@@ -118,11 +118,15 @@ public class BackupGUI extends JFrame {
         table.getTableHeader().setUI(null);
     }
 
-    public void redrawTable(BackupConfig config) {
-        for (int i = 0; i < buttons.length; i++) buttons[i].setText(configsUsed.contains(configs.get(i)) ? disableLabel : enableLabel);
-        buttons[configs.indexOf(config)].setText(enableLabel);
+    public void updateTable() {
         DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
         drawTable(tableModel);
+    }
+
+    public void resetButton(BackupConfig config) {
+        for (int i = 0; i < buttons.length; i++) buttons[i].setText(configsUsed.contains(configs.get(i)) ? disableLabel : enableLabel);
+        buttons[configs.indexOf(config)].setText(enableLabel);
+        updateTable();
         removeConfig(config);
     }
 
