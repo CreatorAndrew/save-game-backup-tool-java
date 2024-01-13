@@ -71,6 +71,8 @@ class BackupSavePath {
 }
 
 public class BackupWatchdog {
+    protected static final String prompt = "> ";
+
     private static boolean isRunningOnWindows() {
         return System.getProperty("os.name").contains("Windows");
     }
@@ -80,8 +82,6 @@ public class BackupWatchdog {
         date.setTimeZone(TimeZone.getDefault());
         return Long.parseLong(date.format(new Date(Files.getLastModifiedTime(savePath).toMillis())));
     }
-
-    protected static final String prompt = "> ";
 
     // This method makes it so that this program treats the filesystem as relative to its own path.
     public static String replaceLocalDotDirectory(String path) {
