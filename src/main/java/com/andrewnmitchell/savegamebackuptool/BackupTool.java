@@ -13,7 +13,7 @@ class MasterConfig {
     private BackupConfig[] configurations;
     @SerializedName("default")
     private String defaultConfigName;
-    private double interval;
+    private Double interval;
 
     public BackupConfig[] getConfigurations() {
         return configurations;
@@ -24,6 +24,7 @@ class MasterConfig {
     }
 
     public double getInterval() {
+        if (interval == null) return 0;
         return interval;
     }
 }

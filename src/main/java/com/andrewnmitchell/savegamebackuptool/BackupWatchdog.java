@@ -73,10 +73,6 @@ class BackupSavePath {
 public class BackupWatchdog {
     protected static final String prompt = "> ";
 
-    private static boolean isRunningOnWindows() {
-        return System.getProperty("os.name").contains("Windows");
-    }
-
     private static Long getModifiedDate(Path savePath) throws IOException {
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
         date.setTimeZone(TimeZone.getDefault());
@@ -148,8 +144,9 @@ public class BackupWatchdog {
         if (getModifiedDate(saveFile) > config.getLastBackupTime()) {
             config.setLastBackupTime(getModifiedDate(saveFile));
 
-            if (gui == null && usePrompt) System.out.println();
             String backup = config.getBackupFileNamePrefix() + "+" + config.getLastBackupTime() + ".zip";
+
+            if (gui == null && usePrompt) System.out.println();
             if (Files.notExists(Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
                 // Create the backup archive file
                 backupArchive.compress(replaceLocalDotDirectory("./") + backup, gui);
@@ -159,6 +156,7 @@ public class BackupWatchdog {
             } else System.out.println(addToTextArea(
                 backup + " already exists in " + backupFolder.replaceAll("/", isRunningOnWindows() ? "\\\\" : "/") + ".\nBackup cancelled", gui
             ));
+            if (gui == null && usePrompt) System.out.print(prompt);
 
             // Rewrite the JSON file
             FileWriter fileWriter = new FileWriter(configFile);
@@ -167,9 +165,11 @@ public class BackupWatchdog {
             gson.toJson(gson.toJsonTree(config), writer);
             writer.close();
             fileWriter.close();
-
-            if (gui == null && usePrompt) System.out.print(prompt);
         }
         return false;
+    }
+
+    private static boolean isRunningOnWindows() {
+        return System.getProperty("os.name").contains("Windows");
     }
 }
