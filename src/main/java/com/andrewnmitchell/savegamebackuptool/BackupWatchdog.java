@@ -73,7 +73,7 @@ class BackupSavePath {
 public class BackupWatchdog {
     protected static final String prompt = "> ";
 
-    private static Long getModifiedDate(Path savePath) throws IOException {
+    private static Long getModifiedTime(Path savePath) throws IOException {
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
         date.setTimeZone(TimeZone.getDefault());
         return Long.parseLong(date.format(new Date(Files.getLastModifiedTime(savePath).toMillis())));
@@ -139,8 +139,8 @@ public class BackupWatchdog {
 
         if (Files.notExists(Paths.get(backupFolder))) Files.createDirectories(Paths.get(backupFolder));
 
-        if (getModifiedDate(saveFile) > config.getLastBackupTime()) {
-            config.setLastBackupTime(getModifiedDate(saveFile));
+        if (getModifiedTime(saveFile) > config.getLastBackupTime()) {
+            config.setLastBackupTime(getModifiedTime(saveFile));
 
             String backup = config.getBackupFileNamePrefix() + "+" + config.getLastBackupTime() + ".zip";
 
