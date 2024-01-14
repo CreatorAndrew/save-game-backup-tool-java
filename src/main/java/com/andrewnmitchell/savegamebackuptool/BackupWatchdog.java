@@ -102,15 +102,13 @@ public class BackupWatchdog {
     }
 
     public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt, boolean firstRun) throws IOException {
-        String home = System.getProperty("user.home").replaceAll("\\\\", "/");
-
         configFile = replaceLocalDotDirectory("./" + configFile);
-
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         FileReader reader = new FileReader(configFile);
         BackupConfigContents config = gson.fromJson(reader, BackupConfigContents.class);
         reader.close();
 
+        String home = System.getProperty("user.home").replaceAll("\\\\", "/");
         String backupFolder = replaceLocalDotDirectory(
             (config.getBackupPath().getPathIsAbsolute() ? "" : (home + "/")) + config.getBackupPath().getPath().replaceAll("\\\\", "/")
         );
