@@ -53,7 +53,7 @@ public class BackupUtils {
     }
 
     public void generateFileList(File node) {
-        if (node.isFile()) fileList.add(generateZipEntry(node.getAbsolutePath().replaceAll("\\\\", "/")));
+        if (node.isFile()) fileList.add(generateZipEntry(node.getAbsolutePath().replace("\\", "/")));
 
         if (node.isDirectory()) {
             String[] subNote = node.list();

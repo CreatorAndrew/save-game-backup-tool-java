@@ -82,9 +82,9 @@ public class BackupWatchdog {
 
     // This method makes it so that this program treats the filesystem as relative to its own path.
     public static String replaceLocalDotDirectory(String path) {
-        String newPath = path.replaceAll("\\\\", "/"), replacement = "";
+        String newPath = path.replace("\\", "/"), replacement = "";
         try {
-            replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath().replaceAll("\\\\", "/");
+            replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath().replace("\\", "/");
         } catch (URISyntaxException e) {
         }
         replacement = replacement.substring(0, replacement.lastIndexOf("/"));
@@ -149,7 +149,7 @@ public class BackupWatchdog {
                     Paths.get(replaceLocalDotDirectory("./" + backup)), Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup)
                 );
             } else System.out.println(addToTextArea(
-                backup + " already exists in " + backupFolder.replaceAll("/", getProperty("os.name").contains("Windows") ? "\\\\" : "/") + ".\nBackup cancelled",
+                backup + " already exists in " + backupFolder.replace("/", getProperty("os.name").contains("Windows") ? "\\" : "/") + ".\nBackup cancelled",
                 gui
             ));
             if (gui == null && usePrompt) System.out.print(prompt);
