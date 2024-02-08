@@ -87,7 +87,12 @@ public class BackupWatchdog {
             replacement = replacement.substring(0, replacement.lastIndexOf("/"));
         } catch (URISyntaxException e) {
         }
-        if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement + "/");
+        if (path.equals(".")) newPath = path.replace(".", replacement);
+        else if (path.equals("..")) {
+            replacement = replacement.substring(0, replacement.lastIndexOf("/"));
+            newPath = path.replace("..", replacement);
+        }
+        else if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement + "/");
         else if (path.startsWith("../")) {
             replacement = replacement.substring(0, replacement.lastIndexOf("/") + 1);
             newPath = path.replaceFirst("../", replacement);
