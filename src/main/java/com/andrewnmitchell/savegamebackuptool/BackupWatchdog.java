@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import static java.lang.System.getProperty;
 
 class BackupConfigContents {
     private BackupSavePath[] searchableSavePaths;
@@ -81,17 +82,17 @@ public class BackupWatchdog {
 
     // This method makes it so that this program treats the filesystem as relative to its own path.
     public static String replaceLocalDotDirectory(String path) {
-        String newPath = path, replacement = "";
+        String newPath = path.replaceAll("\\\\", "/"), replacement = "";
         try {
-            replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
+            replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath().replaceAll("\\\\", "/");
         } catch (URISyntaxException e) {
         }
         replacement = replacement.substring(0, replacement.lastIndexOf("/"));
-        if (path.equals(".")) newPath = path.replace(".", replacement);
-        else if (path.equals("..")) newPath = path.replace("..", replacement.substring(0, replacement.lastIndexOf("/")));
-        else if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement + "/");
-        else if (path.startsWith("../")) newPath = path.replaceFirst("../", replacement.substring(0, replacement.lastIndexOf("/") + 1));
-        if (isRunningOnWindows() && newPath.startsWith("/")) newPath = newPath.substring(1);
+        if (newPath.equals(".")) newPath = newPath.replace(".", replacement);
+        else if (newPath.equals("..")) newPath = newPath.replace("..", replacement.substring(0, replacement.lastIndexOf("/")));
+        else if (newPath.startsWith("./")) newPath = newPath.replaceFirst("./", replacement + "/");
+        else if (newPath.startsWith("../")) newPath = newPath.replaceFirst("../", replacement.substring(0, replacement.lastIndexOf("/") + 1));
+        if (getProperty("os.name").contains("Windows") && newPath.startsWith("/")) newPath = newPath.substring(1);
         return newPath;
     }
 
@@ -107,19 +108,16 @@ public class BackupWatchdog {
         BackupConfigContents config = gson.fromJson(reader, BackupConfigContents.class);
         reader.close();
 
-        String home = System.getProperty("user.home").replaceAll("\\\\", "/");
         String backupFolder = replaceLocalDotDirectory(
-            (config.getBackupPath().getPathIsAbsolute() ? "" : (home + "/")) + config.getBackupPath().getPath().replaceAll("\\\\", "/")
+            (config.getBackupPath().getPathIsAbsolute() ? "" : (getProperty("user.home") + "/")) + config.getBackupPath().getPath()
         );
 
-        Path saveFile = null;
+        String saveFile = null;
         for (int i = 0; i < config.getSearchableSavePaths().length; i++) {
-            String saveFileString = (config.getSearchableSavePaths()[i].getPathIsAbsolute() ? "" : (home + "/")) + config.getSearchableSavePaths()[i].getPath();
-            saveFileString = replaceLocalDotDirectory(saveFileString);
-            if (Files.exists(Paths.get(saveFileString))) {
-                saveFile = Paths.get(saveFileString);
-                break;
-            }
+            saveFile = replaceLocalDotDirectory(
+                (config.getSearchableSavePaths()[i].getPathIsAbsolute() ? "" : (getProperty("user.home") + "/")) + config.getSearchableSavePaths()[i].getPath()
+            );
+            if (Files.exists(Paths.get(saveFile))) break;
         }
         if (saveFile == null) {
             if (firstRun) {
@@ -131,27 +129,28 @@ public class BackupWatchdog {
             // Sometimes on Linux, when Steam launches a Windows game, the Proton prefix path becomes briefly inaccessible.
             return false;
         }
-        String saveFolder = saveFile.toString().substring(0, saveFile.toString().replaceAll("\\\\", "/").lastIndexOf("/") + 1);
+        String saveFolder = saveFile.substring(0, saveFile.lastIndexOf("/") + 1);
 
         BackupUtils backupArchive = new BackupUtils(saveFolder);
         backupArchive.generateFileList(new File(saveFolder));
 
         if (Files.notExists(Paths.get(backupFolder))) Files.createDirectories(Paths.get(backupFolder));
 
-        if (getModifiedTime(saveFile) > config.getLastBackupTime()) {
-            config.setLastBackupTime(getModifiedTime(saveFile));
+        if (getModifiedTime(Paths.get(saveFile)) > config.getLastBackupTime()) {
+            config.setLastBackupTime(getModifiedTime(Paths.get(saveFile)));
 
             String backup = config.getBackupFileNamePrefix() + "+" + config.getLastBackupTime() + ".zip";
 
             if (gui == null && usePrompt) System.out.println();
             if (Files.notExists(Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
                 // Create the backup archive file
-                backupArchive.compress(replaceLocalDotDirectory("./") + backup, gui);
+                backupArchive.compress(replaceLocalDotDirectory("./" + backup), gui);
                 if (!backupFolder.equals(replaceLocalDotDirectory("./"))) Files.move(
-                    Paths.get(replaceLocalDotDirectory("./") + backup), Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup)
+                    Paths.get(replaceLocalDotDirectory("./" + backup)), Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup)
                 );
             } else System.out.println(addToTextArea(
-                backup + " already exists in " + backupFolder.replaceAll("/", isRunningOnWindows() ? "\\\\" : "/") + ".\nBackup cancelled", gui
+                backup + " already exists in " + backupFolder.replaceAll("/", getProperty("os.name").contains("Windows") ? "\\\\" : "/") + ".\nBackup cancelled",
+                gui
             ));
             if (gui == null && usePrompt) System.out.print(prompt);
 
@@ -164,9 +163,5 @@ public class BackupWatchdog {
             fileWriter.close();
         }
         return false;
-    }
-
-    private static boolean isRunningOnWindows() {
-        return System.getProperty("os.name").contains("Windows");
     }
 }
