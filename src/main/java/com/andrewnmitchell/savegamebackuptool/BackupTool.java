@@ -69,61 +69,63 @@ public class BackupTool {
 
         if (noGUI) {
             stopQueue = new ArrayList<String>();
-            boolean stopBackupTool = false;
-            BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-            if (!configPath.equals("")) {
+            if (configPath.equals("")) {
+                boolean stopBackupTool = false;
+                BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+                System.out.println("Enter in \"help\" or \"?\" for assistance.");
+                while (true) {
+                    System.out.print(BackupWatchdog.prompt);
+                    String choice = input.readLine();
+                    switch (choice.toLowerCase()) {
+                        case "start": {
+                            BackupConfig config = addOrRemoveConfig(input, configPath, configs);
+                            if (!configsUsed.contains(config)) {
+                                configsUsed.add(config);
+                                backupThreads.add(new BackupThread(
+                                    configsUsed.get(configsUsed.size() - 1), stopQueue, masterConfig.getInterval(), true, this
+                                ));
+                                backupThreads.get(backupThreads.size() - 1).start();
+                            } else System.out.println("That configuration is already in use");
+                            break;
+                        }
+                        case "stop": {
+                            BackupConfig config = addOrRemoveConfig(input, configPath, configs);
+                            if (!configsUsed.contains(config)) System.out.println("That configuration was not in use.");
+                            removeConfig(config);
+                            break;
+                        }
+                        case "end":
+                        case "exit":
+                        case "quit": {
+                            for (BackupConfig config : configsUsed) {
+                                stopQueue.add(config.getName());
+                                while (backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
+                            }
+                            backupThreads = new ArrayList<BackupThread>();
+                            configsUsed = new ArrayList<BackupConfig>();
+                            stopQueue = new ArrayList<String>();
+                            stopBackupTool = true;
+                            break;
+                        }
+                        case "help":
+                        case "?":
+                            System.out.println(
+                                "Enter in \"start\" to initialize a backup configuration.\nEnter in \"stop\" to suspend a backup configuration.\n" +
+                                "Enter in \"end\", \"exit\", or \"quit\" to shut down this tool."
+                            );
+                            break;
+                        case "": break;
+                        default: System.out.println("Invalid command"); break;
+                    }
+                    if (stopBackupTool) break;
+                }
+                input.close();
+            } else {
                 backupThreads.add(new BackupThread(
                     new BackupConfig(masterConfig.getDefaultConfigName(), configPath), stopQueue, masterConfig.getInterval(), false, this
                 ));
                 backupThreads.get(backupThreads.size() - 1).start();
-            } else System.out.println("Enter in \"help\" or \"?\" for assistance.");
-            while (configPath.equals("")) {
-                System.out.print(BackupWatchdog.prompt);
-                String choice = input.readLine();
-                switch (choice.toLowerCase()) {
-                    case "start": {
-                        BackupConfig config = addOrRemoveConfig(input, configPath, configs);
-                        if (!configsUsed.contains(config)) {
-                            configsUsed.add(config);
-                            backupThreads.add(new BackupThread(
-                                configsUsed.get(configsUsed.size() - 1), stopQueue, masterConfig.getInterval(), true, this
-                            ));
-                            backupThreads.get(backupThreads.size() - 1).start();
-                        } else System.out.println("That configuration is already in use");
-                        break;
-                    }
-                    case "stop": {
-                        BackupConfig config = addOrRemoveConfig(input, configPath, configs);
-                        if (!configsUsed.contains(config)) System.out.println("That configuration was not in use.");
-                        removeConfig(config);
-                        break;
-                    }
-                    case "end":
-                    case "exit":
-                    case "quit": {
-                        for (BackupConfig config : configsUsed) {
-                            stopQueue.add(config.getName());
-                            while (backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-                        }
-                        backupThreads = new ArrayList<BackupThread>();
-                        configsUsed = new ArrayList<BackupConfig>();
-                        stopQueue = new ArrayList<String>();
-                        stopBackupTool = true;
-                        break;
-                    }
-                    case "help":
-                    case "?":
-                        System.out.println(
-                            "Enter in \"start\" to initialize a backup configuration.\nEnter in \"stop\" to suspend a backup configuration.\n" +
-                            "Enter in \"end\", \"exit\", or \"quit\" to shut down this tool."
-                        );
-                        break;
-                    case "": break;
-                    default: System.out.println("Invalid command"); break;
-                }
-                if (stopBackupTool) break;
             }
-            input.close();
         } else {
             BackupGUI gui = new BackupGUI(configs, masterConfig.getInterval());
         }
