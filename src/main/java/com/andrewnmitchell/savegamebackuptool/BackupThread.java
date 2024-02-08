@@ -54,22 +54,18 @@ public class BackupThread extends Thread {
             } catch (InterruptedException e) {
             }
             if (BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun) || Files.exists(Paths.get(stopFilePath))) {
-                removeStopFile(stopFilePath);
+                while (Files.exists(Paths.get(stopFilePath)))
+                    try {
+                        Files.delete(Paths.get(stopFilePath));
+                    // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
+                    } catch (IOException e) {
+                    }
+                enabled = false;
                 if (gui == null) backupTool.removeConfig(config);
                 else gui.resetButton(config);
             }
             firstRun = false;
         }
-        enabled = false;
-    }
-
-    private void removeStopFile(String stopFilePath) {
-        while (Files.exists(Paths.get(stopFilePath)))
-            try {
-                Files.delete(Paths.get(stopFilePath));
-            // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
-            } catch (IOException e) {
-            }
         enabled = false;
     }
 }

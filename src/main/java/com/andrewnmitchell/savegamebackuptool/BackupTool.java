@@ -45,11 +45,12 @@ public class BackupTool {
         MasterConfig masterConfig = (new Gson()).fromJson(
             new FileReader(BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json")), MasterConfig.class
         );
-        String configPath = "";
+
         backupThreads = new ArrayList<BackupThread>();
         configs = Arrays.asList(masterConfig.getConfigurations());
         configsUsed = new ArrayList<BackupConfig>();
 
+        String configPath = "";
         boolean skipChoice = false, noGUI = false;
         for (int i = 0; i < args.length; i++)
             switch (args[i].toLowerCase()) {

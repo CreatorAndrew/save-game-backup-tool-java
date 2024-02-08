@@ -73,7 +73,7 @@ class BackupSavePath {
 public class BackupWatchdog {
     protected static final String prompt = "> ";
 
-    private static Long getModifiedDate(Path savePath) throws IOException {
+    private static Long getModifiedTime(Path savePath) throws IOException {
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
         date.setTimeZone(TimeZone.getDefault());
         return Long.parseLong(date.format(new Date(Files.getLastModifiedTime(savePath).toMillis())));
@@ -102,15 +102,13 @@ public class BackupWatchdog {
     }
 
     public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt, boolean firstRun) throws IOException {
-        String home = System.getProperty("user.home").replaceAll("\\\\", "/");
-
         configFile = replaceLocalDotDirectory("./" + configFile);
-
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         FileReader reader = new FileReader(configFile);
         BackupConfigContents config = gson.fromJson(reader, BackupConfigContents.class);
         reader.close();
 
+        String home = System.getProperty("user.home").replaceAll("\\\\", "/");
         String backupFolder = replaceLocalDotDirectory(
             (config.getBackupPath().getPathIsAbsolute() ? "" : (home + "/")) + config.getBackupPath().getPath().replaceAll("\\\\", "/")
         );
@@ -141,8 +139,8 @@ public class BackupWatchdog {
 
         if (Files.notExists(Paths.get(backupFolder))) Files.createDirectories(Paths.get(backupFolder));
 
-        if (getModifiedDate(saveFile) > config.getLastBackupTime()) {
-            config.setLastBackupTime(getModifiedDate(saveFile));
+        if (getModifiedTime(saveFile) > config.getLastBackupTime()) {
+            config.setLastBackupTime(getModifiedTime(saveFile));
 
             String backup = config.getBackupFileNamePrefix() + "+" + config.getLastBackupTime() + ".zip";
 
