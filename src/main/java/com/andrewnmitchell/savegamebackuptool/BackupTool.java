@@ -50,7 +50,7 @@ public class BackupTool {
         configs = Arrays.asList(masterConfig.getConfigs());
         configsUsed = new ArrayList<BackupConfig>();
 
-        String configPath = "";
+        String configPath = null;
         boolean skipChoice = false, noGUI = false;
         for (int i = 0; i < args.length; i++)
             switch (args[i].toLowerCase()) {
@@ -69,7 +69,7 @@ public class BackupTool {
 
         if (noGUI) {
             stopQueue = new ArrayList<String>();
-            if (configPath.equals("")) {
+            if (configPath == null) {
                 boolean stopBackupTool = false;
                 BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
                 System.out.println("Enter in \"help\" or \"?\" for assistance.");
