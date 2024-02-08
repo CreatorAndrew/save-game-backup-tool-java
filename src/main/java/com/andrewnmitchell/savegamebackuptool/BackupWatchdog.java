@@ -82,18 +82,18 @@ public class BackupWatchdog {
 
     // This method makes it so that this program treats the filesystem as relative to its own path.
     public static String replaceLocalDotDirectory(String path) {
-        String newPath = path.replace("\\", "/"), replacement = "";
+        String tempPath = path.replace("\\", "/"), replacement = "";
         try {
             replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath().replace("\\", "/");
         } catch (URISyntaxException e) {
         }
         replacement = replacement.substring(0, replacement.lastIndexOf("/"));
-        if (newPath.equals(".")) newPath = newPath.replace(".", replacement);
-        else if (newPath.equals("..")) newPath = newPath.replace("..", replacement.substring(0, replacement.lastIndexOf("/")));
-        else if (newPath.startsWith("./")) newPath = newPath.replaceFirst("./", replacement + "/");
-        else if (newPath.startsWith("../")) newPath = newPath.replaceFirst("../", replacement.substring(0, replacement.lastIndexOf("/") + 1));
-        if (getProperty("os.name").contains("Windows") && newPath.startsWith("/")) newPath = newPath.substring(1);
-        return newPath;
+        if (tempPath.equals(".")) tempPath = tempPath.replace(".", replacement);
+        else if (tempPath.equals("..")) tempPath = tempPath.replace("..", replacement.substring(0, replacement.lastIndexOf("/")));
+        else if (tempPath.startsWith("./")) tempPath = tempPath.replaceFirst("./", replacement + "/");
+        else if (tempPath.startsWith("../")) tempPath = tempPath.replaceFirst("../", replacement.substring(0, replacement.lastIndexOf("/") + 1));
+        if (getProperty("os.name").contains("Windows") && tempPath.startsWith("/")) tempPath = tempPath.substring(1);
+        return tempPath;
     }
 
     public static String addToTextArea(String text, BackupGUI gui) {
