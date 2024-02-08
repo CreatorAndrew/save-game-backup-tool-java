@@ -88,14 +88,9 @@ public class BackupWatchdog {
         }
         replacement = replacement.substring(0, replacement.lastIndexOf("/"));
         if (path.equals(".")) newPath = path.replace(".", replacement);
-        else if (path.equals("..")) {
-            replacement = replacement.substring(0, replacement.lastIndexOf("/"));
-            newPath = path.replace("..", replacement);
-        } else if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement + "/");
-        else if (path.startsWith("../")) {
-            replacement = replacement.substring(0, replacement.lastIndexOf("/") + 1);
-            newPath = path.replaceFirst("../", replacement);
-        }
+        else if (path.equals("..")) newPath = path.replace("..", replacement.substring(0, replacement.lastIndexOf("/")));
+        else if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement + "/");
+        else if (path.startsWith("../")) newPath = path.replaceFirst("../", replacement.substring(0, replacement.lastIndexOf("/") + 1));
         if (isRunningOnWindows() && newPath.startsWith("/")) newPath = newPath.substring(1);
         return newPath;
     }
