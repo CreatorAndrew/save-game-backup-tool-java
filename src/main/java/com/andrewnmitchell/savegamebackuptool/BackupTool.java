@@ -15,7 +15,7 @@ class MasterConfig {
     private String defaultConfigName;
     private Double interval;
 
-    public BackupConfig[] getConfigurations() {
+    public BackupConfig[] getConfigs() {
         return configurations;
     }
 
@@ -47,7 +47,7 @@ public class BackupTool {
         );
 
         backupThreads = new ArrayList<BackupThread>();
-        configs = Arrays.asList(masterConfig.getConfigurations());
+        configs = Arrays.asList(masterConfig.getConfigs());
         configsUsed = new ArrayList<BackupConfig>();
 
         String configPath = "";
