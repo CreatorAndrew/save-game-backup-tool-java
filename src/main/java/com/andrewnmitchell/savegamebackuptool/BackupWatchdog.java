@@ -117,7 +117,7 @@ public class BackupWatchdog {
             String tempSaveFile = replaceLocalDotDirectory(
                 (config.getSearchableSavePaths()[i].getPathIsAbsolute() ? "" : (getProperty("user.home") + "/")) + config.getSearchableSavePaths()[i].getPath()
             );
-            if (Files.notExists(Paths.get(saveFile))) {
+            if (Files.exists(Paths.get(tempSaveFile))) {
                 saveFile = tempSaveFile;
                 break;
             }
