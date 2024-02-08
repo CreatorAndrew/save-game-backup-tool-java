@@ -151,21 +151,21 @@ public class BackupTool {
 
     public BackupConfig addOrRemoveConfig(BufferedReader input, String configPath, List<BackupConfig> configs) throws IOException {
         BackupConfig config = null;
-        if (configPath.equals("")) {
+        if (configPath == null) {
             System.out.println("Select one of the following configurations:");
             for (int i = 0; i < configs.size(); i++) System.out.println("    " + i + ": " + configs.get(i).getName());
-            String choice = "";
-            while (choice.equals("")) {
+            String choice = null;
+            while (choice == null) {
                 System.out.print("Enter in an option number here: ");
                 choice = input.readLine();
                 try {
                     if (Integer.parseInt(choice) >= configs.size() || Integer.parseInt(choice) < 0) {
                         System.out.println("Not a valid option number. Try again.");
-                        choice = "";
+                        choice = null;
                     }
                 } catch (NumberFormatException e) {
                     System.out.println("Invalid input value. Try again with a numeric value.");
-                    choice = "";
+                    choice = null;
                 }
             }
             config = configs.get(Integer.parseInt(choice));
