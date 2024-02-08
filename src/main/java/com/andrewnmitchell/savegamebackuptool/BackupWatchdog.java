@@ -1,7 +1,6 @@
 package com.andrewnmitchell.savegamebackuptool;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -157,13 +156,12 @@ public class BackupWatchdog {
             ));
             if (gui == null && usePrompt) System.out.print(prompt);
 
-            // Rewrite the JSON file
-            FileWriter fileWriter = new FileWriter(configFile);
-            JsonWriter writer = gson.newJsonWriter(fileWriter);
-            writer.setIndent("    ");
-            gson.toJson(gson.toJsonTree(config), writer);
+            // Update the JSON file
+            FileWriter writer = new FileWriter(configFile);
+            writer.write(
+                gson.toJson(gson.toJsonTree(config)).replace("\n", getProperty("os.name").contains("Windows") ? "\r\n" : "\n").replace("  ", "    ")
+            );
             writer.close();
-            fileWriter.close();
         }
         return false;
     }
