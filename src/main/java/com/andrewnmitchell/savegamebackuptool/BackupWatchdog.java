@@ -84,9 +84,9 @@ public class BackupWatchdog {
         String newPath = path, replacement = "";
         try {
             replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
-            replacement = replacement.substring(0, replacement.lastIndexOf("/"));
         } catch (URISyntaxException e) {
         }
+        replacement = replacement.substring(0, replacement.lastIndexOf("/"));
         if (path.equals(".")) newPath = path.replace(".", replacement);
         else if (path.equals("..")) {
             replacement = replacement.substring(0, replacement.lastIndexOf("/"));
