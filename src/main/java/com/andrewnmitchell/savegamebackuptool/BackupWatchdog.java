@@ -91,8 +91,7 @@ public class BackupWatchdog {
         else if (path.equals("..")) {
             replacement = replacement.substring(0, replacement.lastIndexOf("/"));
             newPath = path.replace("..", replacement);
-        }
-        else if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement + "/");
+        } else if (path.startsWith("./")) newPath = path.replaceFirst("./", replacement + "/");
         else if (path.startsWith("../")) {
             replacement = replacement.substring(0, replacement.lastIndexOf("/") + 1);
             newPath = path.replaceFirst("../", replacement);
