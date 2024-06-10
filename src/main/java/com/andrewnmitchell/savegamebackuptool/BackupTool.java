@@ -1,6 +1,8 @@
 package com.andrewnmitchell.savegamebackuptool;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -42,9 +44,9 @@ public class BackupTool {
     }
 
     public void run(String args[]) throws IOException {
-        MasterConfig masterConfig = (new Gson()).fromJson(
-            new FileReader(BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json")), MasterConfig.class
-        );
+        FileReader reader = new FileReader(BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json"));
+        MasterConfig masterConfig = (new Gson()).fromJson(reader, MasterConfig.class);
+        reader.close();
 
         backupThreads = new ArrayList<BackupThread>();
         configs = Arrays.asList(masterConfig.getConfigs());
