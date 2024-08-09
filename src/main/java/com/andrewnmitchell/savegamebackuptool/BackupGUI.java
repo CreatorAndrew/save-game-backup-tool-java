@@ -238,9 +238,9 @@ public class BackupGUI extends JFrame {
 
     public void removeConfig(BackupConfig config) {
         if (configsUsed.contains(config)) {
-            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getName());
+            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getPath());
             while (backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getName()));
+            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getPath()));
             backupThreads.remove(configsUsed.indexOf(config));
             configsUsed.remove(configsUsed.indexOf(config));
         }

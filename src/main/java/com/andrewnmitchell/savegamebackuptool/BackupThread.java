@@ -29,10 +29,6 @@ public class BackupThread extends Thread {
         this.usePrompt = usePrompt;
     }
 
-    public String getConfigName() {
-        return config.getName();
-    }
-
     public boolean getEnabled() {
         return enabled;
     }
@@ -45,10 +41,13 @@ public class BackupThread extends Thread {
     }
 
     public void watchdog() throws IOException {
-        String stopFilePath = BackupWatchdog.replaceLocalDotDirectory(
-            "./.stop" + config.getPath().substring(config.getPath().lastIndexOf("/") + 1).replace(".json", "")
+        String stopFilePath = BackupWatchdog.applyWorkingDirectory(
+            "./.stop" + config.getPath().substring(
+                0,
+                config.getPath().toLowerCase().endsWith(".json") ? config.getPath().toLowerCase().lastIndexOf(".json") : config.getPath().length() - 1
+            ).replace(".json", "")
         );
-        while (!stopQueue.contains(getConfigName()) && enabled) {
+        while (!stopQueue.contains(config.getPath()) && enabled) {
             try {
                 Thread.sleep((long) (interval * 1000));
             } catch (InterruptedException e) {

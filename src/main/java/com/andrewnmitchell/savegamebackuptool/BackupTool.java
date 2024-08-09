@@ -2,6 +2,7 @@ package com.andrewnmitchell.savegamebackuptool;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -42,7 +43,7 @@ public class BackupTool {
     }
 
     public void run(String args[]) throws IOException {
-        FileReader reader = new FileReader(BackupWatchdog.replaceLocalDotDirectory("./MasterConfig.json"));
+        FileReader reader = new FileReader(BackupWatchdog.applyWorkingDirectory("./MasterConfig.json"));
         MasterConfig masterConfig = (new Gson()).fromJson(reader, MasterConfig.class);
         reader.close();
 
@@ -59,22 +60,30 @@ public class BackupTool {
             }
 
         for (int i = 0; i < configs.size() && skipChoice; i++)
-            if (configs.get(i).getName().equals(masterConfig.getDefaultConfigName())) configPath = configs.get(i).getPath();
+            if (configs.get(i).getPath().equals(masterConfig.getDefaultConfigName())) configPath = configs.get(i).getPath();
 
         for (int i = 0; i < args.length && args.length > 1 && !skipChoice; i++)
             if (args[i].toLowerCase().equals("--config") && i < args.length - 1) {
-                configPath = args[i + 1].replace(".json", "") + ".json";
+                for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list()) {
+                    if (
+                        file.toLowerCase().endsWith(".json") &&
+                        file.toLowerCase().equals(args[i + 1].toLowerCase().replace(".json", "") + ".json")
+                    ) {
+                        configPath = file;
+                        break;
+                    }
+                }
                 break;
             }
 
         if (noGUI) {
             stopQueue = new ArrayList<String>();
             if (configPath == null) {
-                boolean stopBackupTool = false;
+                boolean continueRunning = true;
                 BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
                 System.out.println("Enter in \"help\" or \"?\" for assistance.");
-                while (true) {
-                    System.out.print(BackupWatchdog.prompt);
+                while (continueRunning) {
+                    System.out.print(BackupWatchdog.PROMPT);
                     String choice = input.readLine();
                     switch (choice.toLowerCase()) {
                         case "start": {
@@ -104,7 +113,7 @@ public class BackupTool {
                             backupThreads = new ArrayList<BackupThread>();
                             configsUsed = new ArrayList<BackupConfig>();
                             stopQueue = new ArrayList<String>();
-                            stopBackupTool = true;
+                            continueRunning = false;
                             break;
                         }
                         case "help":
@@ -117,7 +126,6 @@ public class BackupTool {
                         case "": break;
                         default: System.out.println("Invalid command"); break;
                     }
-                    if (stopBackupTool) break;
                 }
                 input.close();
             } else {
@@ -137,9 +145,9 @@ public class BackupTool {
 
     public void removeConfig(BackupConfig config, boolean wait) {
         if (configsUsed.contains(config)) {
-            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getName());
+            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getPath());
             while (wait && backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-            stopQueue.remove(configsUsed.indexOf(config));
+            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getPath()));
             backupThreads.remove(configsUsed.indexOf(config));
             configsUsed.remove(configsUsed.indexOf(config));
         }

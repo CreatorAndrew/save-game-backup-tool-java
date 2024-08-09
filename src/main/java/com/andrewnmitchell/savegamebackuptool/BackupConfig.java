@@ -2,8 +2,9 @@ package com.andrewnmitchell.savegamebackuptool;
 import com.google.gson.annotations.SerializedName;
 
 public class BackupConfig {
+    @SerializedName("title")
     private String name;
-    @SerializedName("file")
+    @SerializedName("name")
     private String path;
 
     public BackupConfig(String name, String path) {

@@ -43,11 +43,11 @@ class BackupConfigContents {
 
 class BackupSavePath {
     private String path;
-    private boolean isAbsolute;
+    private boolean startsWithUserPath;
 
-    public BackupSavePath(String path, boolean isAbsolute) {
+    public BackupSavePath(String path, boolean startsWithUserPath) {
         setPath(path);
-        setPathIsAbsolute(isAbsolute);
+        setStartsWithUserPath(startsWithUserPath);
     }
 
     public BackupSavePath() {
@@ -61,17 +61,17 @@ class BackupSavePath {
         this.path = path;
     }
 
-    public Boolean getPathIsAbsolute() {
-        return isAbsolute;
+    public Boolean getStartsWithUserPath() {
+        return startsWithUserPath;
     }
 
-    public void setPathIsAbsolute(boolean isAbsolute) {
-        this.isAbsolute = isAbsolute;
+    public void setStartsWithUserPath(boolean startsWithUserPath) {
+        this.startsWithUserPath = startsWithUserPath;
     }
 }
 
 public class BackupWatchdog {
-    protected static final String prompt = "> ";
+    protected static final String PROMPT = "> ";
 
     private static Long getModifiedTime(Path savePath) throws IOException {
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -80,7 +80,7 @@ public class BackupWatchdog {
     }
 
     // This method makes it so that this program treats the filesystem as relative to its own path.
-    public static String replaceLocalDotDirectory(String path) {
+    public static String applyWorkingDirectory(String path) {
         String tempPath = path.replace("\\", "/"), replacement = "";
         try {
             replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath().replace("\\", "/");
@@ -101,20 +101,28 @@ public class BackupWatchdog {
     }
 
     public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt, boolean firstRun) throws IOException {
-        configFile = replaceLocalDotDirectory("./" + configFile);
+        for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list()) {
+            if (
+                file.toLowerCase().endsWith(".json") &&
+                file.toLowerCase().equals(configFile.toLowerCase().replace(".json", "") + ".json")
+            ) {
+                configFile = file;
+                break;
+            }
+        }
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         FileReader reader = new FileReader(configFile);
         BackupConfigContents config = gson.fromJson(reader, BackupConfigContents.class);
         reader.close();
 
-        String backupFolder = replaceLocalDotDirectory(
-            (config.getBackupPath().getPathIsAbsolute() ? "" : (getProperty("user.home") + "/")) + config.getBackupPath().getPath()
+        String backupFolder = applyWorkingDirectory(
+            (config.getBackupPath().getStartsWithUserPath() ? (getProperty("user.home") + "/") : "") + config.getBackupPath().getPath()
         );
 
         String saveFile = null;
         for (int i = 0; i < config.getSearchableSavePaths().length; i++) {
-            String tempSaveFile = replaceLocalDotDirectory(
-                (config.getSearchableSavePaths()[i].getPathIsAbsolute() ? "" : (getProperty("user.home") + "/")) + config.getSearchableSavePaths()[i].getPath()
+            String tempSaveFile = applyWorkingDirectory(
+                (config.getSearchableSavePaths()[i].getStartsWithUserPath() ? (getProperty("user.home") + "/") : "") + config.getSearchableSavePaths()[i].getPath()
             );
             if (Files.exists(Paths.get(tempSaveFile))) {
                 saveFile = tempSaveFile;
@@ -125,7 +133,7 @@ public class BackupWatchdog {
             if (firstRun) {
                 if (gui == null && usePrompt) System.out.println();
                 System.out.println(addToTextArea("No save file found", gui));
-                if (gui == null && usePrompt) System.out.print(prompt);
+                if (gui == null && usePrompt) System.out.print(PROMPT);
                 return true;
             }
             // Sometimes on Linux, when Steam launches a Windows game, the Proton prefix path becomes briefly inaccessible.
@@ -146,15 +154,15 @@ public class BackupWatchdog {
             if (gui == null && usePrompt) System.out.println();
             if (Files.notExists(Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
                 // Create the backup archive file
-                backupArchive.compress(replaceLocalDotDirectory("./" + backup), gui);
-                if (!backupFolder.equals(replaceLocalDotDirectory("./"))) Files.move(
-                    Paths.get(replaceLocalDotDirectory("./" + backup)), Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup)
+                backupArchive.compress(applyWorkingDirectory("./" + backup), gui);
+                if (!backupFolder.equals(applyWorkingDirectory("./"))) Files.move(
+                    Paths.get(applyWorkingDirectory("./" + backup)), Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup)
                 );
             } else System.out.println(addToTextArea(
                 backup + " already exists in " + backupFolder.replace("/", getProperty("os.name").contains("Windows") ? "\\" : "/") + ".\nBackup cancelled",
                 gui
             ));
-            if (gui == null && usePrompt) System.out.print(prompt);
+            if (gui == null && usePrompt) System.out.print(PROMPT);
 
             // Update the JSON file
             FileWriter writer = new FileWriter(configFile);
