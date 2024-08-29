@@ -32,6 +32,28 @@ public class BackupThread extends Thread {
         this.usePrompt = usePrompt;
     }
 
+    public static void removeConfig(IBackupTool callback, BackupConfig config, boolean wait) {
+        if (callback.configsUsed.contains(config)) {
+            callback.stopQueue.add(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID());
+            while (wait && callback.backupThreads.get(callback.configsUsed.indexOf(config)).getEnabled()) System.out.print("");
+            callback.stopQueue.remove(callback.stopQueue.indexOf(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID()));
+            callback.backupThreads.remove(callback.configsUsed.indexOf(config));
+            callback.configsUsed.remove(callback.configsUsed.indexOf(config));
+        }
+    }
+
+    public static void addConfig(IBackupTool callback, BackupConfig config, double interval, BackupTool backupTool) {
+        callback.configsUsed.add(config);
+        callback.backupThreads.add(new BackupThread(callback.configsUsed.get(callback.configsUsed.size() - 1), callback.stopQueue, interval, true, backupTool));
+        callback.backupThreads.get(callback.backupThreads.size() - 1).start();
+    }
+
+    public static void addConfig(IBackupTool callback, BackupConfig config, double interval, BackupGUI backupGUI) {
+        callback.configsUsed.add(config);
+        callback.backupThreads.add(new BackupThread(callback.configsUsed.get(callback.configsUsed.size() - 1), callback.stopQueue, interval, backupGUI));
+        callback.backupThreads.get(callback.backupThreads.size() - 1).start();
+    }
+
     public boolean getEnabled() {
         return enabled;
     }

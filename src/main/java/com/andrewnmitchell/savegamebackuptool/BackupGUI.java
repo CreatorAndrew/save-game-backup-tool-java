@@ -33,9 +33,7 @@ public class BackupGUI extends JFrame {
     private JTextArea textArea;
     private JButton[] buttons;
     private double interval;
-    private List<BackupThread> backupThreads;
-    private List<BackupConfig> configs, configsUsed;
-    private List<UUID> stopQueue;
+    private IBackupTool backupTool;
 
     public BackupGUI(List<BackupConfig> configs, double interval) {
         try {
@@ -43,10 +41,11 @@ public class BackupGUI extends JFrame {
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException e) {
         }
 
-        backupThreads = new ArrayList<BackupThread>();
-        this.configs = configs;
-        configsUsed = new ArrayList<BackupConfig>();
-        stopQueue = new ArrayList<UUID>();
+        backupTool = new IBackupTool();
+        backupTool.backupThreads = new ArrayList<BackupThread>();
+        backupTool.configs = configs;
+        backupTool.configsUsed = new ArrayList<BackupConfig>();
+        backupTool.stopQueue = new ArrayList<UUID>();
         this.interval = interval;
 
         initButtons();
@@ -60,9 +59,9 @@ public class BackupGUI extends JFrame {
     }
 
     public void drawTable(DefaultTableModel tableModel) {
-        Object[][] rows = new Object[configs.size()][2];
-        for (int i = 0; i < configs.size(); i++) {
-            rows[i][0] = configs.get(i).getName();
+        Object[][] rows = new Object[backupTool.configs.size()][2];
+        for (int i = 0; i < backupTool.configs.size(); i++) {
+            rows[i][0] = backupTool.configs.get(i).getName();
             rows[i][1] = buttons[i].getText();
         }
         tableModel.setDataVector(rows, new Object[] { "Configuration", "Button" });
@@ -126,8 +125,8 @@ public class BackupGUI extends JFrame {
     }
 
     public void resetButton(BackupConfig config) {
-        for (int i = 0; i < buttons.length; i++) buttons[i].setText(configsUsed.contains(configs.get(i)) ? disableLabel : enableLabel);
-        buttons[configs.indexOf(config)].setText(enableLabel);
+        for (int i = 0; i < buttons.length; i++) buttons[i].setText(backupTool.configsUsed.contains(backupTool.configs.get(i)) ? disableLabel : enableLabel);
+        buttons[backupTool.configs.indexOf(config)].setText(enableLabel);
         updateTable();
         removeConfig(config);
     }
@@ -173,7 +172,7 @@ public class BackupGUI extends JFrame {
     }
 
     public void initButtons() {
-        buttons = new JButton[configs.size()];
+        buttons = new JButton[backupTool.configs.size()];
         for (int i = 0; i < buttons.length; i++) buttons[i] = new JButton(enableLabel);
     }
 
@@ -205,11 +204,9 @@ public class BackupGUI extends JFrame {
         }
 
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            if (!configsUsed.contains(configs.get(row))) {
-                configsUsed.add(configs.get(row));
-                backupThreads.add(new BackupThread(configsUsed.get(configsUsed.size() - 1), stopQueue, interval, self));
-                backupThreads.get(backupThreads.size() - 1).start();
-            } else removeConfig(configs.get(row));
+            if (!backupTool.configsUsed.contains(backupTool.configs.get(row))) {
+                BackupThread.addConfig(backupTool, backupTool.configs.get(row), interval, self);
+            } else removeConfig(backupTool.configs.get(row));
             label = (value == null) ? "" : value.toString();
             button.setText(label);
             isPushed = true;
@@ -238,12 +235,6 @@ public class BackupGUI extends JFrame {
     }
 
     public void removeConfig(BackupConfig config) {
-        if (configsUsed.contains(config)) {
-            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getUUID());
-            while (backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getUUID()));
-            backupThreads.remove(configsUsed.indexOf(config));
-            configsUsed.remove(configsUsed.indexOf(config));
-        }
+        BackupThread.removeConfig(backupTool, config, true);
     }
 }

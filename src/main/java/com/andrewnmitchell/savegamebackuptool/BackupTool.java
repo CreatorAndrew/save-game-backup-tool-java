@@ -31,11 +31,7 @@ class MasterConfig {
     }
 }
 
-public class BackupTool {
-    private List<BackupThread> backupThreads;
-    private List<BackupConfig> configs, configsUsed;
-    private List<UUID> stopQueue;
-
+public class BackupTool extends IBackupTool {
     public BackupTool(String args[]) {
         try {
             run(args);
@@ -92,11 +88,7 @@ public class BackupTool {
                         case "start": {
                             BackupConfig config = addOrRemoveConfig(input, configPath, configs);
                             if (!configsUsed.contains(config)) {
-                                configsUsed.add(config);
-                                backupThreads.add(new BackupThread(
-                                    configsUsed.get(configsUsed.size() - 1), stopQueue, masterConfig.getInterval(), true, this
-                                ));
-                                backupThreads.get(backupThreads.size() - 1).start();
+                                BackupThread.addConfig(this, config, masterConfig.getInterval(), this);
                             } else System.out.println("That configuration is already in use");
                             break;
                         }
@@ -144,20 +136,6 @@ public class BackupTool {
 
     public static void main(String args[]) {
         BackupTool backupTool = new BackupTool(args);
-    }
-
-    public void removeConfig(BackupConfig config, boolean wait) {
-        if (configsUsed.contains(config)) {
-            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getUUID());
-            while (wait && backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getUUID()));
-            backupThreads.remove(configsUsed.indexOf(config));
-            configsUsed.remove(configsUsed.indexOf(config));
-        }
-    }
-
-    public void removeConfig(BackupConfig config) {
-        removeConfig(config, true);
     }
 
     public BackupConfig addOrRemoveConfig(BufferedReader input, String configPath, List<BackupConfig> configs) throws IOException {
