@@ -1,7 +1,9 @@
 package com.andrewnmitchell.savegamebackuptool;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,11 +43,19 @@ public class BackupThread extends Thread {
         }
     }
 
+    public List<String> getFilesInLowerCase(String path) {
+        List<String> files = new ArrayList<String>();
+        for (String file : new File(path).list()) {
+            files.add(file.toLowerCase());
+        }
+        return files;
+    }
+
     public void watchdog() throws IOException {
         String stopFilePath = BackupWatchdog.applyWorkingDirectory(
             "./.stop" + config.getPath().substring(
                 0,
-                config.getPath().toLowerCase().endsWith(".json") ? config.getPath().toLowerCase().lastIndexOf(".json") : config.getPath().length() - 1
+                config.getPath().toLowerCase().endsWith(".json") ? config.getPath().toLowerCase().lastIndexOf(".json") : config.getPath().length()
             ).replace(".json", "")
         );
         while (!stopQueue.contains(config.getUUID()) && enabled) {
@@ -53,11 +63,14 @@ public class BackupThread extends Thread {
                 Thread.sleep((long) (interval * 1000));
             } catch (InterruptedException e) {
             }
-            if (BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun) || Files.exists(Paths.get(stopFilePath))) {
-                while (Files.exists(Paths.get(stopFilePath)))
+            System.out.println((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase());
+            if (
+                BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun) ||
+                getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory(".")).contains((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase())
+            ) {
+                while (getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory(".")).contains((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase()))
                     try {
                         Files.delete(Paths.get(stopFilePath));
-                    // On Windows, when a stop file is created, it cannot be immediately deleted by Java as it is briefly taken up by another process.
                     } catch (IOException e) {
                     }
                 enabled = false;
