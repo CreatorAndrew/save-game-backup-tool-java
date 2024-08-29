@@ -63,7 +63,6 @@ public class BackupThread extends Thread {
                 Thread.sleep((long) (interval * 1000));
             } catch (InterruptedException e) {
             }
-            System.out.println((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase());
             if (
                 BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun) ||
                 getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory(".")).contains((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase())
