@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 public class BackupThread extends Thread {
     private double interval;
@@ -10,17 +11,17 @@ public class BackupThread extends Thread {
     private BackupTool backupTool;
     private BackupGUI gui;
     private BackupConfig config;
-    private List<String> stopQueue;
+    private List<UUID> stopQueue;
 
-    public BackupThread(BackupConfig config, List<String> stopQueue, double interval, BackupGUI gui) {
+    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval, BackupGUI gui) {
         this(config, stopQueue, interval, false, null, gui);
     }
 
-    public BackupThread(BackupConfig config, List<String> stopQueue, double interval, boolean usePrompt, BackupTool backupTool) {
+    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval, boolean usePrompt, BackupTool backupTool) {
         this(config, stopQueue, interval, usePrompt, backupTool, null);
     }
 
-    public BackupThread(BackupConfig config, List<String> stopQueue, double interval, boolean usePrompt, BackupTool backupTool, BackupGUI gui) {
+    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval, boolean usePrompt, BackupTool backupTool, BackupGUI gui) {
         this.gui = gui;
         this.backupTool = backupTool;
         this.config = config;
@@ -47,7 +48,7 @@ public class BackupThread extends Thread {
                 config.getPath().toLowerCase().endsWith(".json") ? config.getPath().toLowerCase().lastIndexOf(".json") : config.getPath().length() - 1
             ).replace(".json", "")
         );
-        while (!stopQueue.contains(config.getPath()) && enabled) {
+        while (!stopQueue.contains(config.getUUID()) && enabled) {
             try {
                 Thread.sleep((long) (interval * 1000));
             } catch (InterruptedException e) {

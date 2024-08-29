@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 class MasterConfig {
     private BackupConfig[] configurations;
@@ -33,7 +34,7 @@ class MasterConfig {
 public class BackupTool {
     private List<BackupThread> backupThreads;
     private List<BackupConfig> configs, configsUsed;
-    private List<String> stopQueue;
+    private List<UUID> stopQueue;
 
     public BackupTool(String args[]) {
         try {
@@ -50,6 +51,8 @@ public class BackupTool {
         backupThreads = new ArrayList<BackupThread>();
         configs = Arrays.asList(masterConfig.getConfigs());
         configsUsed = new ArrayList<BackupConfig>();
+
+        for (BackupConfig config : configs) config.setUUID(UUID.randomUUID());
 
         String configPath = null;
         boolean skipChoice = false, noGUI = false;
@@ -77,7 +80,7 @@ public class BackupTool {
             }
 
         if (noGUI) {
-            stopQueue = new ArrayList<String>();
+            stopQueue = new ArrayList<UUID>();
             if (configPath == null) {
                 boolean continueRunning = true;
                 BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
@@ -107,12 +110,12 @@ public class BackupTool {
                         case "exit":
                         case "quit": {
                             for (BackupConfig config : configsUsed) {
-                                stopQueue.add(config.getName());
+                                stopQueue.add(config.getUUID());
                                 while (backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
                             }
                             backupThreads = new ArrayList<BackupThread>();
                             configsUsed = new ArrayList<BackupConfig>();
-                            stopQueue = new ArrayList<String>();
+                            stopQueue = new ArrayList<UUID>();
                             continueRunning = false;
                             break;
                         }
@@ -145,9 +148,9 @@ public class BackupTool {
 
     public void removeConfig(BackupConfig config, boolean wait) {
         if (configsUsed.contains(config)) {
-            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getPath());
+            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getUUID());
             while (wait && backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getPath()));
+            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getUUID()));
             backupThreads.remove(configsUsed.indexOf(config));
             configsUsed.remove(configsUsed.indexOf(config));
         }

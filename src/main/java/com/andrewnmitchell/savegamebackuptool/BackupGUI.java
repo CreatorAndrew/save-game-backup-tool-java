@@ -20,8 +20,9 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.EventObject;
+import java.util.List;
+import java.util.UUID;
 
 public class BackupGUI extends JFrame {
     private final String enableLabel = "Start", disableLabel = "Stop";
@@ -34,7 +35,7 @@ public class BackupGUI extends JFrame {
     private double interval;
     private List<BackupThread> backupThreads;
     private List<BackupConfig> configs, configsUsed;
-    private List<String> stopQueue;
+    private List<UUID> stopQueue;
 
     public BackupGUI(List<BackupConfig> configs, double interval) {
         try {
@@ -45,7 +46,7 @@ public class BackupGUI extends JFrame {
         backupThreads = new ArrayList<BackupThread>();
         this.configs = configs;
         configsUsed = new ArrayList<BackupConfig>();
-        stopQueue = new ArrayList<String>();
+        stopQueue = new ArrayList<UUID>();
         this.interval = interval;
 
         initButtons();
@@ -238,9 +239,9 @@ public class BackupGUI extends JFrame {
 
     public void removeConfig(BackupConfig config) {
         if (configsUsed.contains(config)) {
-            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getPath());
+            stopQueue.add(configsUsed.get(configsUsed.indexOf(config)).getUUID());
             while (backupThreads.get(configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getPath()));
+            stopQueue.remove(stopQueue.indexOf(configsUsed.get(configsUsed.indexOf(config)).getUUID()));
             backupThreads.remove(configsUsed.indexOf(config));
             configsUsed.remove(configsUsed.indexOf(config));
         }
