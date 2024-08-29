@@ -68,10 +68,12 @@ public class BackupThread extends Thread {
                 getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory(".")).contains((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase())
             ) {
                 while (getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory(".")).contains((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase()))
-                    try {
-                        Files.delete(Paths.get(stopFilePath));
-                    } catch (IOException e) {
-                    }
+                    for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list())
+                        if (file.equalsIgnoreCase(stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)))
+                            try {
+                                Files.delete(Paths.get(BackupWatchdog.applyWorkingDirectory("./" + file)));
+                            } catch (IOException e) {
+                            }
                 enabled = false;
                 if (gui == null) backupTool.removeConfig(config);
                 else gui.resetButton(config);
