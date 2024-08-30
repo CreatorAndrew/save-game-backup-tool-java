@@ -152,7 +152,7 @@ public class BackupWatchdog {
             return false;
         }
         String saveFolder = saveFile.substring(0, saveFile.lastIndexOf("/") + 1);
-        BackupUtils backupArchive = new BackupUtils(saveFolder);
+        BackupArchiveUtils backupArchive = new BackupArchiveUtils(saveFolder);
         backupArchive.generateFileList(new File(saveFolder));
         if (Files.notExists(Paths.get(backupFolder)))
             Files.createDirectories(Paths.get(backupFolder));

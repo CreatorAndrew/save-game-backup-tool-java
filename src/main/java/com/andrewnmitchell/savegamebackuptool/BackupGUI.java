@@ -26,15 +26,15 @@ import java.util.List;
 import java.util.UUID;
 
 public class BackupGUI extends JFrame {
-    private final String enableLabel = "Start", disableLabel = "Stop";
-    private final int width = 512, height = 384;
-    private BackupGUI self = this;
-    private JScrollPane scrollPane, textScrollPane;
-    private JTable table;
-    private JTextArea textArea;
+    private final String DISABLED_LABEL = "Start", ENABLED_LABEL = "Stop";
+    private final int FRAME_HEIGHT = 384, FRAME_WIDTH = 512;
+    private BackupToolBase backupTool;
     private JButton[] buttons;
     private double interval;
-    private BackupToolBase backupTool;
+    private JScrollPane scrollPane, textScrollPane;
+    private BackupGUI self = this;
+    private JTable table;
+    private JTextArea textArea;
 
     public BackupGUI(List<BackupConfig> configs, double interval) {
         try {
@@ -51,7 +51,7 @@ public class BackupGUI extends JFrame {
         initButtons();
         initComponents();
         setTitle("Save Game Backup Tool");
-        setMinimumSize(new Dimension(width, height));
+        setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setLocationRelativeTo(null);
         setVisible(true);
     }
@@ -124,9 +124,9 @@ public class BackupGUI extends JFrame {
     public void resetButton(BackupConfig config) {
         for (int i = 0; i < buttons.length; i++)
             buttons[i].setText(backupTool.getConfigsUsed().contains(backupTool.getConfigs().get(i))
-                    ? disableLabel
-                    : enableLabel);
-        buttons[backupTool.getConfigs().indexOf(config)].setText(enableLabel);
+                    ? ENABLED_LABEL
+                    : DISABLED_LABEL);
+        buttons[backupTool.getConfigs().indexOf(config)].setText(DISABLED_LABEL);
         updateTable();
         BackupThread.removeConfig(backupTool, config);
     }
@@ -167,7 +167,7 @@ public class BackupGUI extends JFrame {
     public void initButtons() {
         buttons = new JButton[backupTool.getConfigs().size()];
         for (int i = 0; i < buttons.length; i++)
-            buttons[i] = new JButton(enableLabel);
+            buttons[i] = new JButton(DISABLED_LABEL);
     }
 
     class ButtonRenderer extends JButton implements TableCellRenderer {
@@ -183,8 +183,8 @@ public class BackupGUI extends JFrame {
 
     class ButtonEditor extends DefaultCellEditor {
         private JButton button;
-        private String label;
         private boolean isPushed;
+        private String label;
 
         public ButtonEditor(JCheckBox checkBox) {
             super(checkBox);
@@ -212,7 +212,7 @@ public class BackupGUI extends JFrame {
 
         public Object getCellEditorValue() {
             if (isPushed)
-                label = label.equals(enableLabel) ? disableLabel : enableLabel;
+                label = label.equals(DISABLED_LABEL) ? ENABLED_LABEL : DISABLED_LABEL;
             isPushed = false;
             return new String(label);
         }

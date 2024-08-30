@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class BackupUtils {
+public class BackupArchiveUtils {
     private ArrayList<String> fileList;
     private String sourceFolder;
 
-    public BackupUtils(String folder) {
+    public BackupArchiveUtils(String folder) {
         sourceFolder = folder;
         fileList = new ArrayList<String>();
     }
