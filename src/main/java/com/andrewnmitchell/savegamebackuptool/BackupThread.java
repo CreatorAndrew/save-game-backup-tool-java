@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.UUID;
 
 public class BackupThread extends Thread {
-    private double interval;
-    private boolean enabled = true, firstRun = true, usePrompt;
     private BackupToolBase backupTool;
-    private BackupGUI gui;
     private BackupConfig config;
+    private boolean enabled = true, firstRun = true, usePrompt;
+    private BackupGUI gui;
+    private double interval;
     private List<UUID> stopQueue;
 
     public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval, BackupGUI gui) {
