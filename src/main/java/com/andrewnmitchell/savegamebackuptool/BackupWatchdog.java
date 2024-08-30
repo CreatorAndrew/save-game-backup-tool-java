@@ -101,7 +101,7 @@ public class BackupWatchdog {
     }
 
     public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt, boolean firstRun) throws IOException {
-        for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list()) {
+        for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list())
             if (
                 file.toLowerCase().endsWith(".json") &&
                 file.toLowerCase().equals(configFile.toLowerCase().replace(".json", "") + ".json")
@@ -109,7 +109,6 @@ public class BackupWatchdog {
                 configFile = file;
                 break;
             }
-        }
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         FileReader reader = new FileReader(configFile);
         BackupConfigContents config = gson.fromJson(reader, BackupConfigContents.class);

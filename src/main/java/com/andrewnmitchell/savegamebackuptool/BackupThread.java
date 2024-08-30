@@ -33,13 +33,11 @@ public class BackupThread extends Thread {
     }
 
     public static void removeConfig(BackupToolBase callback, BackupConfig config, boolean wait) {
-        if (callback.configsUsed.contains(config)) {
-            callback.stopQueue.add(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID());
-            while (wait && callback.backupThreads.get(callback.configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-            callback.stopQueue.remove(callback.stopQueue.indexOf(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID()));
-            callback.backupThreads.remove(callback.configsUsed.indexOf(config));
-            callback.configsUsed.remove(callback.configsUsed.indexOf(config));
-        }
+        callback.stopQueue.add(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID());
+        while (wait && callback.backupThreads.get(callback.configsUsed.indexOf(config)).getEnabled()) System.out.print("");
+        callback.stopQueue.remove(callback.stopQueue.indexOf(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID()));
+        callback.backupThreads.remove(callback.configsUsed.indexOf(config));
+        callback.configsUsed.remove(callback.configsUsed.indexOf(config));
     }
 
     public static void addConfig(BackupToolBase callback, BackupConfig config, double interval) {

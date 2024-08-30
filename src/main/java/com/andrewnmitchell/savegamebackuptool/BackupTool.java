@@ -85,15 +85,14 @@ public class BackupTool extends BackupToolBase {
                     switch (choice.toLowerCase()) {
                         case "start": {
                             BackupConfig config = addOrRemoveConfig(input, configPath, configs);
-                            if (!configsUsed.contains(config)) {
-                                BackupThread.addConfig(this, config, masterConfig.getInterval());
-                            } else System.out.println("That configuration is already in use");
+                            if (configsUsed.contains(config)) System.out.println("That configuration is already in use");
+                            else BackupThread.addConfig(this, config, masterConfig.getInterval());
                             break;
                         }
                         case "stop": {
                             BackupConfig config = addOrRemoveConfig(input, configPath, configs);
-                            if (!configsUsed.contains(config)) System.out.println("That configuration was not in use.");
-                            removeConfig(config);
+                            if (configsUsed.contains(config)) removeConfig(config);
+                            else System.out.println("That configuration was not in use.");
                             break;
                         }
                         case "end":
