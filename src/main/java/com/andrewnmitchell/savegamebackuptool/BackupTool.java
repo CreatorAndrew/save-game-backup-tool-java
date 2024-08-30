@@ -57,7 +57,7 @@ public class BackupTool extends BackupToolBase {
                 case "--no-gui": noGUI = true; break;
                 case "--skip-choice": skipChoice = true; break;
             }
-        
+
         if (skipChoice) configPath = masterConfig.getDefaultConfigName();
 
         for (int i = 0; i < args.length && args.length > 1 && !skipChoice; i++)
