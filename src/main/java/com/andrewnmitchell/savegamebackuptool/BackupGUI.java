@@ -234,6 +234,6 @@ public class BackupGUI extends JFrame {
     }
 
     public void removeConfig(BackupConfig config) {
-        BackupThread.removeConfig(backupTool, config, true);
+        BackupThread.removeConfig(backupTool, config);
     }
 }

@@ -32,9 +32,9 @@ public class BackupThread extends Thread {
         this.usePrompt = usePrompt;
     }
 
-    public static void removeConfig(BackupToolBase callback, BackupConfig config, boolean wait) {
+    public static void removeConfig(BackupToolBase callback, BackupConfig config) {
         callback.stopQueue.add(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID());
-        while (wait && callback.backupThreads.get(callback.configsUsed.indexOf(config)).getEnabled()) System.out.print("");
+        while (callback.backupThreads.get(callback.configsUsed.indexOf(config)).getEnabled()) System.out.print("");
         callback.stopQueue.remove(callback.stopQueue.indexOf(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID()));
         callback.backupThreads.remove(callback.configsUsed.indexOf(config));
         callback.configsUsed.remove(callback.configsUsed.indexOf(config));
