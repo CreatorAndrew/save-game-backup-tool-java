@@ -61,19 +61,19 @@ public class BackupThread extends Thread {
         return enabled;
     }
 
-    public void run() {
-        try {
-            watchdog();
-        } catch (IOException e) {
-        }
-    }
-
     public List<String> getFilesInLowerCase(String path) {
         List<String> files = new ArrayList<String>();
         for (String file : new File(path).list()) {
             files.add(file.toLowerCase());
         }
         return files;
+    }
+
+    public void run() {
+        try {
+            watchdog();
+        } catch (IOException e) {
+        }
     }
 
     public void watchdog() throws IOException {

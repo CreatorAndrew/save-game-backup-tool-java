@@ -36,6 +36,63 @@ public class BackupGUI extends JFrame {
     private JTable table;
     private JTextArea textArea;
 
+    class ButtonEditor extends DefaultCellEditor {
+        private JButton button;
+        private boolean isPushed;
+        private String label;
+
+        public ButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton();
+            button.setOpaque(true);
+            button.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent event) {
+                    fireEditingStopped();
+                }
+            });
+        }
+
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
+                int row, int column) {
+            if (backupTool.getConfigsUsed().contains(backupTool.getConfigs().get(row)))
+                BackupThread.removeConfig(backupTool, backupTool.getConfigs().get(row));
+            else
+                BackupThread.addConfig(backupTool, backupTool.getConfigs().get(row), interval,
+                        self);
+            label = (value == null) ? "" : value.toString();
+            button.setText(label);
+            isPushed = true;
+            return button;
+        }
+
+        public Object getCellEditorValue() {
+            if (isPushed)
+                label = label.equals(DISABLED_LABEL) ? ENABLED_LABEL : DISABLED_LABEL;
+            isPushed = false;
+            return new String(label);
+        }
+
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
+        }
+
+        protected void fireEditingStopped() {
+            super.fireEditingStopped();
+        }
+    }
+
+    class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {}
+
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            setBackground(UIManager.getColor("Button.background"));
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
+
     public BackupGUI(List<BackupConfig> configs, double interval) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -54,6 +111,11 @@ public class BackupGUI extends JFrame {
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    public void addToTextArea(String text) {
+        textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
+        textArea.getCaret().setDot(Integer.MAX_VALUE);
     }
 
     public void drawTable(DefaultTableModel tableModel) {
@@ -116,19 +178,10 @@ public class BackupGUI extends JFrame {
         table.getTableHeader().setUI(null);
     }
 
-    public void updateTable() {
-        DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
-        drawTable(tableModel);
-    }
-
-    public void resetButton(BackupConfig config) {
+    public void initButtons() {
+        buttons = new JButton[backupTool.getConfigs().size()];
         for (int i = 0; i < buttons.length; i++)
-            buttons[i].setText(backupTool.getConfigsUsed().contains(backupTool.getConfigs().get(i))
-                    ? ENABLED_LABEL
-                    : DISABLED_LABEL);
-        buttons[backupTool.getConfigs().indexOf(config)].setText(DISABLED_LABEL);
-        updateTable();
-        BackupThread.removeConfig(backupTool, config);
+            buttons[i] = new JButton(DISABLED_LABEL);
     }
 
     public void initComponents() {
@@ -164,71 +217,18 @@ public class BackupGUI extends JFrame {
         pack();
     }
 
-    public void initButtons() {
-        buttons = new JButton[backupTool.getConfigs().size()];
+    public void resetButton(BackupConfig config) {
         for (int i = 0; i < buttons.length; i++)
-            buttons[i] = new JButton(DISABLED_LABEL);
+            buttons[i].setText(backupTool.getConfigsUsed().contains(backupTool.getConfigs().get(i))
+                    ? ENABLED_LABEL
+                    : DISABLED_LABEL);
+        buttons[backupTool.getConfigs().indexOf(config)].setText(DISABLED_LABEL);
+        updateTable();
+        BackupThread.removeConfig(backupTool, config);
     }
 
-    class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer() {}
-
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column) {
-            setBackground(UIManager.getColor("Button.background"));
-            setText((value == null) ? "" : value.toString());
-            return this;
-        }
-    }
-
-    class ButtonEditor extends DefaultCellEditor {
-        private JButton button;
-        private boolean isPushed;
-        private String label;
-
-        public ButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton();
-            button.setOpaque(true);
-            button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent event) {
-                    fireEditingStopped();
-                }
-            });
-        }
-
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
-                int row, int column) {
-            if (backupTool.getConfigsUsed().contains(backupTool.getConfigs().get(row)))
-                BackupThread.removeConfig(backupTool, backupTool.getConfigs().get(row));
-            else
-                BackupThread.addConfig(backupTool, backupTool.getConfigs().get(row), interval,
-                        self);
-            label = (value == null) ? "" : value.toString();
-            button.setText(label);
-            isPushed = true;
-            return button;
-        }
-
-        public Object getCellEditorValue() {
-            if (isPushed)
-                label = label.equals(DISABLED_LABEL) ? ENABLED_LABEL : DISABLED_LABEL;
-            isPushed = false;
-            return new String(label);
-        }
-
-        public boolean stopCellEditing() {
-            isPushed = false;
-            return super.stopCellEditing();
-        }
-
-        protected void fireEditingStopped() {
-            super.fireEditingStopped();
-        }
-    }
-
-    public void addToTextArea(String text) {
-        textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
-        textArea.getCaret().setDot(Integer.MAX_VALUE);
+    public void updateTable() {
+        DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+        drawTable(tableModel);
     }
 }

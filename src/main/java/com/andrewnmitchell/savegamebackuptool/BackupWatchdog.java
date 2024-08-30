@@ -16,25 +16,25 @@ import java.util.TimeZone;
 import static java.lang.System.getProperty;
 
 class BackupConfigContents {
-    private BackupSavePath[] searchableSavePaths;
-    private BackupSavePath backupPath;
     private String backupFileNamePrefix;
+    private BackupSavePath backupPath;
     private long lastBackupTime;
+    private BackupSavePath[] searchableSavePaths;
 
-    public BackupSavePath[] getSearchableSavePaths() {
-        return searchableSavePaths;
+    public String getBackupFileNamePrefix() {
+        return backupFileNamePrefix;
     }
 
     public BackupSavePath getBackupPath() {
         return backupPath;
     }
 
-    public String getBackupFileNamePrefix() {
-        return backupFileNamePrefix;
-    }
-
     public long getLastBackupTime() {
         return lastBackupTime;
+    }
+
+    public BackupSavePath[] getSearchableSavePaths() {
+        return searchableSavePaths;
     }
 
     public void setLastBackupTime(long time) {
@@ -58,12 +58,12 @@ class BackupSavePath {
         return path;
     }
 
-    public void setPath(String path) {
-        this.path = path;
-    }
-
     public Boolean getStartsWithUserPath() {
         return startsWithUserPath;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public void setStartsWithUserPath(boolean startsWithUserPath) {
@@ -75,11 +75,10 @@ class BackupSavePath {
 public class BackupWatchdog {
     protected static final String PROMPT = "> ";
 
-    private static Long getModifiedTime(Path savePath) throws IOException {
-        SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
-        date.setTimeZone(TimeZone.getDefault());
-        return Long
-                .parseLong(date.format(new Date(Files.getLastModifiedTime(savePath).toMillis())));
+    public static String addToTextArea(String text, BackupGUI gui) {
+        if (gui != null)
+            gui.addToTextArea(text);
+        return text;
     }
 
     // This method makes it so that this program treats the filesystem as relative to its own path.
@@ -106,10 +105,11 @@ public class BackupWatchdog {
         return tempPath;
     }
 
-    public static String addToTextArea(String text, BackupGUI gui) {
-        if (gui != null)
-            gui.addToTextArea(text);
-        return text;
+    private static Long getModifiedTime(Path savePath) throws IOException {
+        SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
+        date.setTimeZone(TimeZone.getDefault());
+        return Long
+                .parseLong(date.format(new Date(Files.getLastModifiedTime(savePath).toMillis())));
     }
 
     public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt,
