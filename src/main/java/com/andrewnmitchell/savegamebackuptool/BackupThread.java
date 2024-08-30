@@ -33,22 +33,22 @@ public class BackupThread extends Thread {
     }
 
     public static void removeConfig(BackupToolBase callback, BackupConfig config) {
-        callback.stopQueue.add(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID());
+        callback.stopQueue.add(config.getUUID());
         while (callback.backupThreads.get(callback.configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-        callback.stopQueue.remove(callback.stopQueue.indexOf(callback.configsUsed.get(callback.configsUsed.indexOf(config)).getUUID()));
+        callback.stopQueue.remove(callback.stopQueue.indexOf(config.getUUID()));
         callback.backupThreads.remove(callback.configsUsed.indexOf(config));
         callback.configsUsed.remove(callback.configsUsed.indexOf(config));
     }
 
     public static void addConfig(BackupToolBase callback, BackupConfig config, double interval) {
         callback.configsUsed.add(config);
-        callback.backupThreads.add(new BackupThread(callback.configsUsed.get(callback.configsUsed.size() - 1), callback.stopQueue, interval, true, callback));
+        callback.backupThreads.add(new BackupThread(config, callback.stopQueue, interval, true, callback));
         callback.backupThreads.get(callback.backupThreads.size() - 1).start();
     }
 
     public static void addConfig(BackupToolBase callback, BackupConfig config, double interval, BackupGUI backupGUI) {
         callback.configsUsed.add(config);
-        callback.backupThreads.add(new BackupThread(callback.configsUsed.get(callback.configsUsed.size() - 1), callback.stopQueue, interval, backupGUI));
+        callback.backupThreads.add(new BackupThread(config, callback.stopQueue, interval, backupGUI));
         callback.backupThreads.get(callback.backupThreads.size() - 1).start();
     }
 
