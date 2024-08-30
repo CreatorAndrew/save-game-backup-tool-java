@@ -41,14 +41,12 @@ public class BackupThread extends Thread {
     }
 
     public static void addConfig(BackupToolBase callback, BackupConfig config, double interval) {
-        callback.configsUsed.add(config);
-        callback.backupThreads.add(new BackupThread(config, callback.stopQueue, interval, true, callback));
-        callback.backupThreads.get(callback.backupThreads.size() - 1).start();
+        addConfig(callback, config, interval, null);
     }
 
     public static void addConfig(BackupToolBase callback, BackupConfig config, double interval, BackupGUI backupGUI) {
         callback.configsUsed.add(config);
-        callback.backupThreads.add(new BackupThread(config, callback.stopQueue, interval, backupGUI));
+        callback.backupThreads.add(new BackupThread(config, callback.stopQueue, interval, backupGUI == null, backupGUI == null ? callback : null, backupGUI));
         callback.backupThreads.get(callback.backupThreads.size() - 1).start();
     }
 
