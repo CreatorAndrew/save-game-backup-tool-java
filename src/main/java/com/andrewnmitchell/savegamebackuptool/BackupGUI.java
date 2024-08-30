@@ -33,7 +33,7 @@ public class BackupGUI extends JFrame {
     private JTextArea textArea;
     private JButton[] buttons;
     private double interval;
-    private IBackupTool backupTool;
+    private BackupToolBase backupTool;
 
     public BackupGUI(List<BackupConfig> configs, double interval) {
         try {
@@ -41,7 +41,7 @@ public class BackupGUI extends JFrame {
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException e) {
         }
 
-        backupTool = new IBackupTool();
+        backupTool = new BackupToolBase();
         backupTool.backupThreads = new ArrayList<BackupThread>();
         backupTool.configs = configs;
         backupTool.configsUsed = new ArrayList<BackupConfig>();

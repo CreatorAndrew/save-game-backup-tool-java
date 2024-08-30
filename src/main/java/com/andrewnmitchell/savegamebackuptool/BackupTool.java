@@ -31,7 +31,7 @@ class MasterConfig {
     }
 }
 
-public class BackupTool extends IBackupTool {
+public class BackupTool extends BackupToolBase {
     public BackupTool(String args[]) {
         try {
             run(args);
@@ -88,7 +88,7 @@ public class BackupTool extends IBackupTool {
                         case "start": {
                             BackupConfig config = addOrRemoveConfig(input, configPath, configs);
                             if (!configsUsed.contains(config)) {
-                                BackupThread.addConfig(this, config, masterConfig.getInterval(), this);
+                                BackupThread.addConfig(this, config, masterConfig.getInterval());
                             } else System.out.println("That configuration is already in use");
                             break;
                         }
