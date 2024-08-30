@@ -204,9 +204,8 @@ public class BackupGUI extends JFrame {
         }
 
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            if (!backupTool.configsUsed.contains(backupTool.configs.get(row))) {
-                BackupThread.addConfig(backupTool, backupTool.configs.get(row), interval, self);
-            } else removeConfig(backupTool.configs.get(row));
+            if (!backupTool.configsUsed.contains(backupTool.configs.get(row))) BackupThread.addConfig(backupTool, backupTool.configs.get(row), interval, self);
+            else removeConfig(backupTool.configs.get(row));
             label = (value == null) ? "" : value.toString();
             button.setText(label);
             isPushed = true;

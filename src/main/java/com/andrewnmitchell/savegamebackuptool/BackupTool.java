@@ -57,13 +57,12 @@ public class BackupTool extends BackupToolBase {
                 case "--no-gui": noGUI = true; break;
                 case "--skip-choice": skipChoice = true; break;
             }
-
-        for (int i = 0; i < configs.size() && skipChoice; i++)
-            if (configs.get(i).getPath().equals(masterConfig.getDefaultConfigName())) configPath = configs.get(i).getPath();
+        
+        configPath = masterConfig.getDefaultConfigName();
 
         for (int i = 0; i < args.length && args.length > 1 && !skipChoice; i++)
             if (args[i].toLowerCase().equals("--config") && i < args.length - 1) {
-                for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list()) {
+                for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list())
                     if (
                         file.toLowerCase().endsWith(".json") &&
                         file.toLowerCase().equals(args[i + 1].toLowerCase().replace(".json", "") + ".json")
@@ -71,7 +70,6 @@ public class BackupTool extends BackupToolBase {
                         configPath = file;
                         break;
                     }
-                }
                 break;
             }
 
