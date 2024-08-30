@@ -1,4 +1,5 @@
 package com.andrewnmitchell.savegamebackuptool;
+
 import javax.swing.DefaultCellEditor;
 import javax.swing.event.CellEditorListener;
 import javax.swing.GroupLayout;
@@ -38,39 +39,37 @@ public class BackupGUI extends JFrame {
     public BackupGUI(List<BackupConfig> configs, double interval) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException
+                | UnsupportedLookAndFeelException e) {
         }
-
         backupTool = new BackupToolBase();
-        backupTool.backupThreads = new ArrayList<BackupThread>();
-        backupTool.configs = configs;
-        backupTool.configsUsed = new ArrayList<BackupConfig>();
-        backupTool.stopQueue = new ArrayList<UUID>();
+        backupTool.setBackupThreads(new ArrayList<BackupThread>());
+        backupTool.setConfigs(configs);
+        backupTool.setConfigsUsed(new ArrayList<BackupConfig>());
+        backupTool.setStopQueue(new ArrayList<UUID>());
         this.interval = interval;
-
         initButtons();
         initComponents();
-
         setTitle("Save Game Backup Tool");
         setMinimumSize(new Dimension(width, height));
         setLocationRelativeTo(null);
-
         setVisible(true);
     }
 
     public void drawTable(DefaultTableModel tableModel) {
-        Object[][] rows = new Object[backupTool.configs.size()][2];
-        for (int i = 0; i < backupTool.configs.size(); i++) {
-            rows[i][0] = backupTool.configs.get(i).getName();
+        Object[][] rows = new Object[backupTool.getConfigs().size()][2];
+        for (int i = 0; i < backupTool.getConfigs().size(); i++) {
+            rows[i][0] = backupTool.getConfigs().get(i).getName();
             rows[i][1] = buttons[i].getText();
         }
-        tableModel.setDataVector(rows, new Object[] { "Configuration", "Button" });
+        tableModel.setDataVector(rows, new Object[] {"Configuration", "Button"});
         table.getColumn("Button").setCellRenderer(new ButtonRenderer());
         table.getColumn("Button").setCellEditor(new ButtonEditor(new JCheckBox()));
         // Make the titles of the backup configurations unselectable and uneditable
         table.getColumn("Configuration").setCellRenderer(new TableCellRenderer() {
             @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
                 return new JLabel(value.toString());
             }
         });
@@ -98,22 +97,20 @@ public class BackupGUI extends JFrame {
             }
 
             @Override
-            public void cancelCellEditing() {
-            }
+            public void cancelCellEditing() {}
 
             @Override
-            public void addCellEditorListener(CellEditorListener l) {
-            }
+            public void addCellEditorListener(CellEditorListener l) {}
 
             @Override
-            public void removeCellEditorListener(CellEditorListener l) {
-            }
+            public void removeCellEditorListener(CellEditorListener l) {}
 
             @Override
-            public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            public Component getTableCellEditorComponent(JTable table, Object value,
+                    boolean isSelected, int row, int column) {
                 label = value.toString();
                 return new JLabel(label);
-            }            
+            }
         });
         table.setDefaultRenderer(JButton.class, new ButtonRenderer());
         table.getTableHeader().setUI(null);
@@ -125,8 +122,11 @@ public class BackupGUI extends JFrame {
     }
 
     public void resetButton(BackupConfig config) {
-        for (int i = 0; i < buttons.length; i++) buttons[i].setText(backupTool.configsUsed.contains(backupTool.configs.get(i)) ? disableLabel : enableLabel);
-        buttons[backupTool.configs.indexOf(config)].setText(enableLabel);
+        for (int i = 0; i < buttons.length; i++)
+            buttons[i].setText(backupTool.getConfigsUsed().contains(backupTool.getConfigs().get(i))
+                    ? disableLabel
+                    : enableLabel);
+        buttons[backupTool.getConfigs().indexOf(config)].setText(enableLabel);
         updateTable();
         BackupThread.removeConfig(backupTool, config);
     }
@@ -135,36 +135,29 @@ public class BackupGUI extends JFrame {
         DefaultTableModel tableModel = new DefaultTableModel();
         table = new JTable(tableModel);
         drawTable(tableModel);
-
         scrollPane = new JScrollPane();
-        scrollPane.setViewportView(table); 
-        add(scrollPane, BorderLayout.CENTER); 
-
+        scrollPane.setViewportView(table);
+        add(scrollPane, BorderLayout.CENTER);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-
         textArea = new JTextArea();
         textArea.setColumns(20);
         textArea.setRows(5);
         textArea.setEditable(false);
-
         textScrollPane = new JScrollPane();
         textScrollPane.setViewportView(textArea);
-
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)
-            .addComponent(textScrollPane, GroupLayout.Alignment.TRAILING)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+        layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)
-                .addComponent(textScrollPane, GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))
-        );
-
+                .addComponent(textScrollPane, GroupLayout.Alignment.TRAILING));
+        layout.setVerticalGroup(
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 1,
+                                        Short.MAX_VALUE)
+                                .addComponent(textScrollPane, GroupLayout.PREFERRED_SIZE, 1,
+                                        Short.MAX_VALUE)));
         table.setShowHorizontalLines(false);
         table.setShowVerticalLines(false);
         table.getTableHeader().setReorderingAllowed(false);
@@ -172,15 +165,16 @@ public class BackupGUI extends JFrame {
     }
 
     public void initButtons() {
-        buttons = new JButton[backupTool.configs.size()];
-        for (int i = 0; i < buttons.length; i++) buttons[i] = new JButton(enableLabel);
+        buttons = new JButton[backupTool.getConfigs().size()];
+        for (int i = 0; i < buttons.length; i++)
+            buttons[i] = new JButton(enableLabel);
     }
 
     class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer() {
-        }
+        public ButtonRenderer() {}
 
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
             setBackground(UIManager.getColor("Button.background"));
             setText((value == null) ? "" : value.toString());
             return this;
@@ -203,9 +197,13 @@ public class BackupGUI extends JFrame {
             });
         }
 
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            if (backupTool.configsUsed.contains(backupTool.configs.get(row))) BackupThread.removeConfig(backupTool, backupTool.configs.get(row));
-            else BackupThread.addConfig(backupTool, backupTool.configs.get(row), interval, self);
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
+                int row, int column) {
+            if (backupTool.getConfigsUsed().contains(backupTool.getConfigs().get(row)))
+                BackupThread.removeConfig(backupTool, backupTool.getConfigs().get(row));
+            else
+                BackupThread.addConfig(backupTool, backupTool.getConfigs().get(row), interval,
+                        self);
             label = (value == null) ? "" : value.toString();
             button.setText(label);
             isPushed = true;
@@ -213,7 +211,8 @@ public class BackupGUI extends JFrame {
         }
 
         public Object getCellEditorValue() {
-            if (isPushed) label = label.equals(enableLabel) ? disableLabel : enableLabel;
+            if (isPushed)
+                label = label.equals(enableLabel) ? disableLabel : enableLabel;
             isPushed = false;
             return new String(label);
         }

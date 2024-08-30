@@ -1,4 +1,5 @@
 package com.andrewnmitchell.savegamebackuptool;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,35 +20,41 @@ public class BackupThread extends Thread {
         this(config, stopQueue, interval, false, null, gui);
     }
 
-    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval, boolean usePrompt, BackupToolBase backupTool) {
+    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval,
+            boolean usePrompt, BackupToolBase backupTool) {
         this(config, stopQueue, interval, usePrompt, backupTool, null);
     }
 
-    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval, boolean usePrompt, BackupToolBase backupTool, BackupGUI gui) {
-        this.gui = gui;
+    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval,
+            boolean usePrompt, BackupToolBase backupTool, BackupGUI gui) {
         this.backupTool = backupTool;
         this.config = config;
-        this.stopQueue = stopQueue;
+        this.gui = gui;
         this.interval = interval;
+        this.stopQueue = stopQueue;
         this.usePrompt = usePrompt;
     }
 
-    public static void removeConfig(BackupToolBase callback, BackupConfig config) {
-        callback.stopQueue.add(config.getUUID());
-        while (callback.backupThreads.get(callback.configsUsed.indexOf(config)).getEnabled()) System.out.print("");
-        callback.stopQueue.remove(callback.stopQueue.indexOf(config.getUUID()));
-        callback.backupThreads.remove(callback.configsUsed.indexOf(config));
-        callback.configsUsed.remove(callback.configsUsed.indexOf(config));
+    public static void addConfig(BackupToolBase backupTool, BackupConfig config, double interval) {
+        addConfig(backupTool, config, interval, null);
     }
 
-    public static void addConfig(BackupToolBase callback, BackupConfig config, double interval) {
-        addConfig(callback, config, interval, null);
+    public static void addConfig(BackupToolBase backupTool, BackupConfig config, double interval,
+            BackupGUI backupGUI) {
+        backupTool.getConfigsUsed().add(config);
+        backupTool.getBackupThreads().add(new BackupThread(config, backupTool.getStopQueue(),
+                interval, backupGUI == null, backupGUI == null ? backupTool : null, backupGUI));
+        backupTool.getBackupThreads().get(backupTool.getBackupThreads().size() - 1).start();
     }
 
-    public static void addConfig(BackupToolBase callback, BackupConfig config, double interval, BackupGUI backupGUI) {
-        callback.configsUsed.add(config);
-        callback.backupThreads.add(new BackupThread(config, callback.stopQueue, interval, backupGUI == null, backupGUI == null ? callback : null, backupGUI));
-        callback.backupThreads.get(callback.backupThreads.size() - 1).start();
+    public static void removeConfig(BackupToolBase backupTool, BackupConfig config) {
+        backupTool.getStopQueue().add(config.getUUID());
+        while (backupTool.getBackupThreads().get(backupTool.getConfigsUsed().indexOf(config))
+                .getEnabled())
+            System.out.print("");
+        backupTool.getStopQueue().remove(backupTool.getStopQueue().indexOf(config.getUUID()));
+        backupTool.getBackupThreads().remove(backupTool.getConfigsUsed().indexOf(config));
+        backupTool.getConfigsUsed().remove(backupTool.getConfigsUsed().indexOf(config));
     }
 
     public boolean getEnabled() {
@@ -70,31 +77,36 @@ public class BackupThread extends Thread {
     }
 
     public void watchdog() throws IOException {
-        String stopFilePath = BackupWatchdog.applyWorkingDirectory(
-            "./.stop" + config.getPath().substring(
-                0,
-                config.getPath().toLowerCase().endsWith(".json") ? config.getPath().toLowerCase().lastIndexOf(".json") : config.getPath().length()
-            ).replace(".json", "")
-        );
+        String stopFilePath = BackupWatchdog.applyWorkingDirectory("./.stop" + config.getPath()
+                .substring(0,
+                        config.getPath().toLowerCase().endsWith(".json")
+                                ? config.getPath().toLowerCase().lastIndexOf(".json")
+                                : config.getPath().length())
+                .replace(".json", ""));
         while (!stopQueue.contains(config.getUUID()) && enabled) {
             try {
                 Thread.sleep((long) (interval * 1000));
             } catch (InterruptedException e) {
             }
-            if (
-                BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun) ||
-                getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory(".")).contains((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase())
-            ) {
-                while (getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory(".")).contains((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase()))
+            if (BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun)
+                    || getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory("."))
+                            .contains((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1))
+                                    .toLowerCase())) {
+                while (getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory(".")).contains(
+                        (stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase()))
                     for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list())
-                        if (file.equalsIgnoreCase(stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)))
+                        if (file.equalsIgnoreCase(
+                                stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)))
                             try {
-                                Files.delete(Paths.get(BackupWatchdog.applyWorkingDirectory("./" + file)));
+                                Files.delete(Paths
+                                        .get(BackupWatchdog.applyWorkingDirectory("./" + file)));
                             } catch (IOException e) {
                             }
                 enabled = false;
-                if (gui == null) removeConfig(backupTool, config);
-                else gui.resetButton(config);
+                if (gui == null)
+                    removeConfig(backupTool, config);
+                else
+                    gui.resetButton(config);
             }
             firstRun = false;
         }

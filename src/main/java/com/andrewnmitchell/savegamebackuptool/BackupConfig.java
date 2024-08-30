@@ -1,4 +1,5 @@
 package com.andrewnmitchell.savegamebackuptool;
+
 import com.google.gson.annotations.SerializedName;
 import java.util.UUID;
 
@@ -14,27 +15,26 @@ public class BackupConfig {
         setPath(path);
     }
 
-    public BackupConfig() {
-    }
+    public BackupConfig() {}
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getPath() {
         return path;
     }
 
-    public void setPath(String path) {
-        this.path = path;
-    }
-
     public UUID getUUID() {
         return uuid;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public void setUUID(UUID uuid) {

@@ -1,4 +1,5 @@
 package com.andrewnmitchell.savegamebackuptool;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -24,10 +25,11 @@ public class BackupUtils {
         try {
             fileOutputStream = new FileOutputStream(zipFile);
             zipOutputStream = new ZipOutputStream(fileOutputStream);
-            System.out.print(BackupWatchdog.addToTextArea("Creating backup archive: " + zipFile.substring(zipFile.lastIndexOf("/") + 1), gui));
+            System.out.print(BackupWatchdog.addToTextArea(
+                    "Creating backup archive: " + zipFile.substring(zipFile.lastIndexOf("/") + 1),
+                    gui));
             System.out.println();
             FileInputStream fileInputStream = null;
-
             for (String file : this.fileList) {
                 System.out.println(BackupWatchdog.addToTextArea("Added " + file, gui));
                 ZipEntry zipEntry = new ZipEntry(file);
@@ -35,12 +37,13 @@ public class BackupUtils {
                 try {
                     fileInputStream = new FileInputStream(sourceFolder + file);
                     int length;
-                    while ((length = fileInputStream.read(buffer)) > 0) zipOutputStream.write(buffer, 0, length);
+                    while ((length = fileInputStream.read(buffer)) > 0)
+                        zipOutputStream.write(buffer, 0, length);
                 } finally {
-                    if (fileInputStream != null) fileInputStream.close();
+                    if (fileInputStream != null)
+                        fileInputStream.close();
                 }
             }
-
             zipOutputStream.closeEntry();
             System.out.println(BackupWatchdog.addToTextArea("Backup successful", gui));
         } catch (IOException e) {
@@ -53,15 +56,17 @@ public class BackupUtils {
     }
 
     public void generateFileList(File node) {
-        if (node.isFile()) fileList.add(generateZipEntry(node.getAbsolutePath().replace("\\", "/")));
-
+        if (node.isFile())
+            fileList.add(generateZipEntry(node.getAbsolutePath().replace("\\", "/")));
         if (node.isDirectory()) {
             String[] subNote = node.list();
-            for (String fileName : subNote) generateFileList(new File(node, fileName));
+            for (String fileName : subNote)
+                generateFileList(new File(node, fileName));
         }
     }
 
     private String generateZipEntry(String file) {
-        return file.substring(Paths.get(sourceFolder).toFile().getAbsolutePath().length() + 1, file.length());
+        return file.substring(Paths.get(sourceFolder).toFile().getAbsolutePath().length() + 1,
+                file.length());
     }
 }
