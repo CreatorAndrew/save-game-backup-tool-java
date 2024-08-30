@@ -91,7 +91,7 @@ public class BackupTool extends BackupToolBase {
                         }
                         case "stop": {
                             BackupConfig config = addOrRemoveConfig(input, configPath, configs);
-                            if (configsUsed.contains(config)) removeConfig(config);
+                            if (configsUsed.contains(config)) BackupThread.removeConfig(this, config);
                             else System.out.println("That configuration was not in use.");
                             break;
                         }

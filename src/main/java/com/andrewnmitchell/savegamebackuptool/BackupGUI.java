@@ -128,7 +128,7 @@ public class BackupGUI extends JFrame {
         for (int i = 0; i < buttons.length; i++) buttons[i].setText(backupTool.configsUsed.contains(backupTool.configs.get(i)) ? disableLabel : enableLabel);
         buttons[backupTool.configs.indexOf(config)].setText(enableLabel);
         updateTable();
-        removeConfig(config);
+        BackupThread.removeConfig(backupTool, config);
     }
 
     public void initComponents() {
@@ -204,7 +204,7 @@ public class BackupGUI extends JFrame {
         }
 
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            if (backupTool.configsUsed.contains(backupTool.configs.get(row))) removeConfig(backupTool.configs.get(row));
+            if (backupTool.configsUsed.contains(backupTool.configs.get(row))) BackupThread.removeConfig(backupTool, backupTool.configs.get(row));
             else BackupThread.addConfig(backupTool, backupTool.configs.get(row), interval, self);
             label = (value == null) ? "" : value.toString();
             button.setText(label);
@@ -231,9 +231,5 @@ public class BackupGUI extends JFrame {
     public void addToTextArea(String text) {
         textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
         textArea.getCaret().setDot(Integer.MAX_VALUE);
-    }
-
-    public void removeConfig(BackupConfig config) {
-        BackupThread.removeConfig(backupTool, config);
     }
 }

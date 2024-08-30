@@ -93,7 +93,7 @@ public class BackupThread extends Thread {
                             } catch (IOException e) {
                             }
                 enabled = false;
-                if (gui == null) backupTool.removeConfig(config);
+                if (gui == null) removeConfig(backupTool, config);
                 else gui.resetButton(config);
             }
             firstRun = false;

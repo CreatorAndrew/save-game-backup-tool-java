@@ -6,8 +6,4 @@ public class BackupToolBase {
     public List<BackupThread> backupThreads;
     public List<BackupConfig> configs, configsUsed;
     public List<UUID> stopQueue;
-
-    public void removeConfig(BackupConfig config) {
-        BackupThread.removeConfig(this, config);
-    }
 }
