@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
+import static com.andrewnmitchell.savegamebackuptool.BackupThread.*;
 
 class MasterConfig {
     private BackupConfig[] configurations;
@@ -43,8 +45,7 @@ public class BackupTool extends BackupToolBase {
     }
 
     public void run(String args[]) throws IOException {
-        FileReader reader =
-                new FileReader(BackupWatchdog.applyWorkingDirectory("./MasterConfig.json"));
+        FileReader reader = new FileReader(applyWorkingDirectory("./MasterConfig.json"));
         MasterConfig masterConfig = (new Gson()).fromJson(reader, MasterConfig.class);
         reader.close();
         setBackupThreads(new ArrayList<BackupThread>());
@@ -67,7 +68,7 @@ public class BackupTool extends BackupToolBase {
             configPath = masterConfig.getDefaultConfigName();
         for (int i = 0; i < args.length && args.length > 1 && !skipChoice; i++)
             if (args[i].toLowerCase().equals("--config") && i < args.length - 1) {
-                for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list())
+                for (String file : new File(applyWorkingDirectory(".")).list())
                     if (file.toLowerCase().endsWith(".json") && file.toLowerCase()
                             .equals(args[i + 1].toLowerCase().replace(".json", "") + ".json")) {
                         configPath = file;
@@ -82,7 +83,7 @@ public class BackupTool extends BackupToolBase {
                 BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
                 System.out.println("Enter in \"help\" or \"?\" for assistance.");
                 while (continueRunning) {
-                    System.out.print(BackupWatchdog.PROMPT);
+                    System.out.print(PROMPT);
                     String choice = input.readLine();
                     switch (choice.toLowerCase()) {
                         case "start": {
@@ -91,14 +92,14 @@ public class BackupTool extends BackupToolBase {
                             if (getConfigsUsed().contains(config))
                                 System.out.println("That configuration is already in use");
                             else
-                                BackupThread.addConfig(this, config, masterConfig.getInterval());
+                                addConfig(this, config, masterConfig.getInterval());
                             break;
                         }
                         case "stop": {
                             BackupConfig config =
                                     addOrRemoveConfig(input, configPath, getConfigs());
                             if (getConfigsUsed().contains(config))
-                                BackupThread.removeConfig(this, config);
+                                removeConfig(this, config);
                             else
                                 System.out.println("That configuration was not in use.");
                             break;
@@ -106,15 +107,8 @@ public class BackupTool extends BackupToolBase {
                         case "end":
                         case "exit":
                         case "quit": {
-                            for (BackupConfig config : getConfigsUsed()) {
-                                getStopQueue().add(config.getUUID());
-                                while (getBackupThreads().get(getConfigsUsed().indexOf(config))
-                                        .getEnabled())
-                                    System.out.print("");
-                            }
-                            setBackupThreads(new ArrayList<BackupThread>());
-                            setConfigsUsed(new ArrayList<BackupConfig>());
-                            setStopQueue(new ArrayList<UUID>());
+                            for (BackupConfig config : getConfigsUsed())
+                                removeConfig(this, config);
                             continueRunning = false;
                             break;
                         }

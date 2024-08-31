@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
 import java.util.UUID;
+import static com.andrewnmitchell.savegamebackuptool.BackupThread.*;
 
 public class BackupGUI extends JFrame {
     private final String DISABLED_LABEL = "Start", ENABLED_LABEL = "Stop";
@@ -55,10 +56,9 @@ public class BackupGUI extends JFrame {
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
                 int row, int column) {
             if (backupTool.getConfigsUsed().contains(backupTool.getConfigs().get(row)))
-                BackupThread.removeConfig(backupTool, backupTool.getConfigs().get(row));
+                removeConfig(backupTool, backupTool.getConfigs().get(row));
             else
-                BackupThread.addConfig(backupTool, backupTool.getConfigs().get(row), interval,
-                        self);
+                addConfig(backupTool, backupTool.getConfigs().get(row), interval, self);
             label = (value == null) ? "" : value.toString();
             button.setText(label);
             isPushed = true;
@@ -224,7 +224,7 @@ public class BackupGUI extends JFrame {
                     : DISABLED_LABEL);
         buttons[backupTool.getConfigs().indexOf(config)].setText(DISABLED_LABEL);
         updateTable();
-        BackupThread.removeConfig(backupTool, config);
+        removeConfig(backupTool, config);
     }
 
     public void updateTable() {

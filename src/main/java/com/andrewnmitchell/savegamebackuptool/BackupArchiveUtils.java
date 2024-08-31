@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
 
 public class BackupArchiveUtils {
     private ArrayList<String> fileList;
@@ -25,13 +26,13 @@ public class BackupArchiveUtils {
         try {
             fileOutputStream = new FileOutputStream(zipFile);
             zipOutputStream = new ZipOutputStream(fileOutputStream);
-            System.out.print(BackupWatchdog.addToTextArea(
+            System.out.print(addToTextArea(
                     "Creating backup archive: " + zipFile.substring(zipFile.lastIndexOf("/") + 1),
                     gui));
             System.out.println();
             FileInputStream fileInputStream = null;
             for (String file : this.fileList) {
-                System.out.println(BackupWatchdog.addToTextArea("Added " + file, gui));
+                System.out.println(addToTextArea("Added " + file, gui));
                 ZipEntry zipEntry = new ZipEntry(file);
                 zipOutputStream.putNextEntry(zipEntry);
                 try {
@@ -45,7 +46,7 @@ public class BackupArchiveUtils {
                 }
             }
             zipOutputStream.closeEntry();
-            System.out.println(BackupWatchdog.addToTextArea("Backup successful", gui));
+            System.out.println(addToTextArea("Backup successful", gui));
         } catch (IOException e) {
         } finally {
             try {

@@ -2,6 +2,8 @@ mvn compile assembly:single
 mkdir dist
 cp ./target/save-game-backup-tool*.jar ./dist/BackupTool.jar
 cp ./BackupTool.* ./dist
+chmod +x ./dist/BackupTool.*
+chmod -x ./dist/BackupTool.bat
 cp ./*.json ./dist
 cp ./LICENSE.md ./dist
 cp -r ./Test ./dist

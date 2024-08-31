@@ -4,8 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
 
 public class BackupThread extends Thread {
     private BackupToolBase backupTool;
@@ -26,7 +25,7 @@ public class BackupThread extends Thread {
 
     public BackupThread(BackupConfig config, double interval, boolean usePrompt,
             BackupToolBase backupTool, BackupGUI gui) {
-        stopFilePath = BackupWatchdog.applyWorkingDirectory("./.stop" + config.getPath()
+        stopFilePath = applyWorkingDirectory("./.stop" + config.getPath()
                 .substring(0,
                         config.getPath().toLowerCase().endsWith(".json")
                                 ? config.getPath().toLowerCase().lastIndexOf(".json")
@@ -46,8 +45,8 @@ public class BackupThread extends Thread {
     public static void addConfig(BackupToolBase backupTool, BackupConfig config, double interval,
             BackupGUI backupGUI) {
         backupTool.getConfigsUsed().add(config);
-        backupTool.getBackupThreads().add(new BackupThread(config, interval, backupGUI == null,
-                backupGUI == null ? backupTool : null, backupGUI));
+        backupTool.getBackupThreads()
+                .add(new BackupThread(config, interval, backupGUI == null, backupTool, backupGUI));
         backupTool.getBackupThreads().get(backupTool.getBackupThreads().size() - 1).start();
     }
 
@@ -65,13 +64,6 @@ public class BackupThread extends Thread {
         return enabled;
     }
 
-    public List<String> getFilesInLowerCase(String path) {
-        List<String> files = new ArrayList<String>();
-        for (String file : new File(path).list())
-            files.add(file.toLowerCase());
-        return files;
-    }
-
     public void run() {
         try {
             watchdog();
@@ -86,17 +78,16 @@ public class BackupThread extends Thread {
             } catch (InterruptedException e) {
             }
             if (BackupWatchdog.watchdog(config.getPath(), gui, usePrompt, firstRun)
-                    || getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory("."))
+                    || getFilesInLowerCase(applyWorkingDirectory("."))
                             .contains((stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1))
                                     .toLowerCase())) {
-                while (getFilesInLowerCase(BackupWatchdog.applyWorkingDirectory(".")).contains(
+                while (getFilesInLowerCase(applyWorkingDirectory(".")).contains(
                         (stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)).toLowerCase()))
-                    for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list())
+                    for (String file : new File(applyWorkingDirectory(".")).list())
                         if (file.equalsIgnoreCase(
                                 stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)))
                             try {
-                                Files.delete(Paths
-                                        .get(BackupWatchdog.applyWorkingDirectory("./" + file)));
+                                Files.delete(Paths.get(applyWorkingDirectory("./" + file)));
                             } catch (IOException e) {
                             }
                 enabled = false;

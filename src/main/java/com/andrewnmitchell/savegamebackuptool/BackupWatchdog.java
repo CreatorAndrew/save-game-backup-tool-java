@@ -6,26 +6,26 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
 import static java.lang.System.getProperty;
 
 class BackupConfigContents {
     private String backupFileNamePrefix;
-    private BackupSavePath backupPath;
+    private BackupOrSavePath backupPath;
     private long lastBackupTime;
-    private BackupSavePath[] searchableSavePaths;
+    private BackupOrSavePath[] searchableSavePaths;
 
     public String getBackupFileNamePrefix() {
         return backupFileNamePrefix;
     }
 
-    public BackupSavePath getBackupPath() {
+    public BackupOrSavePath getBackupPath() {
         return backupPath;
     }
 
@@ -33,7 +33,7 @@ class BackupConfigContents {
         return lastBackupTime;
     }
 
-    public BackupSavePath[] getSearchableSavePaths() {
+    public BackupOrSavePath[] getSearchableSavePaths() {
         return searchableSavePaths;
     }
 
@@ -43,16 +43,16 @@ class BackupConfigContents {
 }
 
 
-class BackupSavePath {
+class BackupOrSavePath {
     private String path;
     private boolean startsWithUserPath;
 
-    public BackupSavePath(String path, boolean startsWithUserPath) {
+    public BackupOrSavePath(String path, boolean startsWithUserPath) {
         setPath(path);
         setStartsWithUserPath(startsWithUserPath);
     }
 
-    public BackupSavePath() {}
+    public BackupOrSavePath() {}
 
     public String getPath() {
         return path;
@@ -73,38 +73,6 @@ class BackupSavePath {
 
 
 public class BackupWatchdog {
-    protected static final String PROMPT = "> ";
-
-    public static String addToTextArea(String text, BackupGUI gui) {
-        if (gui != null)
-            gui.addToTextArea(text);
-        return text;
-    }
-
-    // This method makes it so that this program treats the filesystem as relative to its own path.
-    public static String applyWorkingDirectory(String path) {
-        String tempPath = path.replace("\\", "/"), replacement = "";
-        try {
-            replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation()
-                    .toURI()).getPath().replace("\\", "/");
-        } catch (URISyntaxException e) {
-        }
-        replacement = replacement.substring(0, replacement.lastIndexOf("/"));
-        if (tempPath.equals("."))
-            tempPath = tempPath.replace(".", replacement);
-        else if (tempPath.equals(".."))
-            tempPath =
-                    tempPath.replace("..", replacement.substring(0, replacement.lastIndexOf("/")));
-        else if (tempPath.startsWith("./"))
-            tempPath = tempPath.replaceFirst("./", replacement + "/");
-        else if (tempPath.startsWith("../"))
-            tempPath = tempPath.replaceFirst("../",
-                    replacement.substring(0, replacement.lastIndexOf("/") + 1));
-        if (getProperty("os.name").contains("Windows") && tempPath.startsWith("/"))
-            tempPath = tempPath.substring(1);
-        return tempPath;
-    }
-
     private static Long getModifiedTime(Path savePath) throws IOException {
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
         date.setTimeZone(TimeZone.getDefault());
@@ -114,10 +82,10 @@ public class BackupWatchdog {
 
     public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt,
             boolean firstRun) throws IOException {
-        for (String file : new File(BackupWatchdog.applyWorkingDirectory(".")).list())
+        for (String file : new File(applyWorkingDirectory(".")).list())
             if (file.toLowerCase().endsWith(".json") && file.toLowerCase()
                     .equals(configFile.toLowerCase().replace(".json", "") + ".json")) {
-                configFile = file;
+                configFile = applyWorkingDirectory("./" + file);
                 break;
             }
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
