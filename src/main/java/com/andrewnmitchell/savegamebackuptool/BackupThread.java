@@ -14,10 +14,6 @@ public class BackupThread extends Thread {
     private double interval;
     private String stopFilePath;
 
-    public BackupThread(BackupConfig config, double interval, BackupGUI gui) {
-        this(config, interval, false, null, gui);
-    }
-
     public BackupThread(BackupConfig config, double interval, boolean usePrompt,
             BackupToolBase backupTool) {
         this(config, interval, usePrompt, backupTool, null);
