@@ -118,8 +118,8 @@ public class BackupGUI extends JFrame {
             @Override
             public void windowClosing(WindowEvent event) {
                 removeAllConfigs(backupTool, self);
-                self.setVisible(false);
-                self.dispose();
+                setVisible(false);
+                dispose();
             }
         });
     }
