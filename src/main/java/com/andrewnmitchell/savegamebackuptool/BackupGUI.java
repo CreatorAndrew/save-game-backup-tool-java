@@ -113,7 +113,6 @@ public class BackupGUI extends JFrame {
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setLocationRelativeTo(null);
         setVisible(true);
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
@@ -202,8 +201,7 @@ public class BackupGUI extends JFrame {
         scrollPane = new JScrollPane();
         scrollPane.setViewportView(table);
         add(scrollPane, BorderLayout.CENTER);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         textArea = new JTextArea();
         textArea.setColumns(20);
         textArea.setRows(5);
