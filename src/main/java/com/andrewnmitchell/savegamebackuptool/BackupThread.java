@@ -63,9 +63,8 @@ public class BackupThread extends Thread {
 
     public List<String> getFilesInLowerCase(String path) {
         List<String> files = new ArrayList<String>();
-        for (String file : new File(path).list()) {
+        for (String file : new File(path).list())
             files.add(file.toLowerCase());
-        }
         return files;
     }
 
