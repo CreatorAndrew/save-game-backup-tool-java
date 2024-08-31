@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
 import static com.andrewnmitchell.savegamebackuptool.BackupThread.*;
+import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
 
 class MasterConfig {
     private BackupConfig[] configurations;
