@@ -136,7 +136,7 @@ public class BackupTool extends BackupToolBase {
             } else {
                 getBackupThreads().add(new BackupThread(
                         new BackupConfig(masterConfig.getDefaultConfigName(), configPath),
-                        getStopQueue(), masterConfig.getInterval(), false, this));
+                        masterConfig.getInterval(), false, this));
                 getBackupThreads().get(getBackupThreads().size() - 1).start();
             }
         } else {

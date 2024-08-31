@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class BackupThread extends Thread {
     private BackupToolBase backupTool;
@@ -14,24 +13,29 @@ public class BackupThread extends Thread {
     private boolean enabled = true, firstRun = true, usePrompt;
     private BackupGUI gui;
     private double interval;
-    private List<UUID> stopQueue;
+    private String stopFilePath;
 
-    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval, BackupGUI gui) {
-        this(config, stopQueue, interval, false, null, gui);
+    public BackupThread(BackupConfig config, double interval, BackupGUI gui) {
+        this(config, interval, false, null, gui);
     }
 
-    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval,
-            boolean usePrompt, BackupToolBase backupTool) {
-        this(config, stopQueue, interval, usePrompt, backupTool, null);
+    public BackupThread(BackupConfig config, double interval, boolean usePrompt,
+            BackupToolBase backupTool) {
+        this(config, interval, usePrompt, backupTool, null);
     }
 
-    public BackupThread(BackupConfig config, List<UUID> stopQueue, double interval,
-            boolean usePrompt, BackupToolBase backupTool, BackupGUI gui) {
+    public BackupThread(BackupConfig config, double interval, boolean usePrompt,
+            BackupToolBase backupTool, BackupGUI gui) {
+        stopFilePath = BackupWatchdog.applyWorkingDirectory("./.stop" + config.getPath()
+                .substring(0,
+                        config.getPath().toLowerCase().endsWith(".json")
+                                ? config.getPath().toLowerCase().lastIndexOf(".json")
+                                : config.getPath().length())
+                .replace(".json", ""));
         this.backupTool = backupTool;
         this.config = config;
         this.gui = gui;
         this.interval = interval;
-        this.stopQueue = stopQueue;
         this.usePrompt = usePrompt;
     }
 
@@ -42,8 +46,8 @@ public class BackupThread extends Thread {
     public static void addConfig(BackupToolBase backupTool, BackupConfig config, double interval,
             BackupGUI backupGUI) {
         backupTool.getConfigsUsed().add(config);
-        backupTool.getBackupThreads().add(new BackupThread(config, backupTool.getStopQueue(),
-                interval, backupGUI == null, backupGUI == null ? backupTool : null, backupGUI));
+        backupTool.getBackupThreads().add(new BackupThread(config, interval, backupGUI == null,
+                backupGUI == null ? backupTool : null, backupGUI));
         backupTool.getBackupThreads().get(backupTool.getBackupThreads().size() - 1).start();
     }
 
@@ -76,13 +80,7 @@ public class BackupThread extends Thread {
     }
 
     public void watchdog() throws IOException {
-        String stopFilePath = BackupWatchdog.applyWorkingDirectory("./.stop" + config.getPath()
-                .substring(0,
-                        config.getPath().toLowerCase().endsWith(".json")
-                                ? config.getPath().toLowerCase().lastIndexOf(".json")
-                                : config.getPath().length())
-                .replace(".json", ""));
-        while (!stopQueue.contains(config.getUUID()) && enabled) {
+        while (!backupTool.getStopQueue().contains(config.getUUID()) && enabled) {
             try {
                 Thread.sleep((long) (interval * 1000));
             } catch (InterruptedException e) {
