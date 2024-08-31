@@ -115,13 +115,13 @@ public class BackupGUI extends JFrame {
         setVisible(true);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent event) {
-				removeAllConfigs(backupTool, self);
+            @Override
+            public void windowClosing(WindowEvent event) {
+                removeAllConfigs(backupTool, self);
                 self.setVisible(false);
                 self.dispose();
-			}
-		});
+            }
+        });
     }
 
     public void addToTextArea(String text) {
