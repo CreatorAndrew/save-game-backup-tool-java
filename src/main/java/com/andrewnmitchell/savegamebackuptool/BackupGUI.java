@@ -20,6 +20,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
@@ -111,6 +113,15 @@ public class BackupGUI extends JFrame {
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setLocationRelativeTo(null);
         setVisible(true);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent event) {
+				removeAllConfigs(backupTool, self);
+                self.setVisible(false);
+                self.dispose();
+			}
+		});
     }
 
     public void addToTextArea(String text) {

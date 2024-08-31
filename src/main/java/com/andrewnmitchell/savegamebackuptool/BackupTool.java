@@ -107,8 +107,7 @@ public class BackupTool extends BackupToolBase {
                         case "end":
                         case "exit":
                         case "quit": {
-                            for (BackupConfig config : getConfigsUsed())
-                                removeConfig(this, config);
+                            removeAllConfigs(this);
                             continueRunning = false;
                             break;
                         }
