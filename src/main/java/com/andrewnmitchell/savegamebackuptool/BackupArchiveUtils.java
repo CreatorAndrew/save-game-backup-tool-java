@@ -31,7 +31,7 @@ public class BackupArchiveUtils {
                     gui));
             System.out.println();
             FileInputStream fileInputStream = null;
-            for (String file : this.fileList) {
+            for (String file : fileList) {
                 System.out.println(addToTextArea("Added " + file, gui));
                 ZipEntry zipEntry = new ZipEntry(file);
                 zipOutputStream.putNextEntry(zipEntry);
