@@ -231,13 +231,12 @@ public class BackupGUI extends JFrame {
         pack();
         double buttonSize;
         try {
-            buttonSize = (double) table.getSize().height / backupTool.getConfigs().size();
+            buttonSize = (double) table.getHeight() / backupTool.getConfigs().size();
         } catch (Exception e) {
             buttonSize = .0;
         }
-        int maxTableHeight =
-                (table.getSize().height > (int) (buttonSize * 5) ? (int) (buttonSize * 5)
-                        : table.getSize().height) + 3;
+        int maxTableHeight = (table.getHeight() > (int) (buttonSize * 5) ? (int) (buttonSize * 5)
+                : table.getHeight()) + 3;
         layout.setVerticalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
