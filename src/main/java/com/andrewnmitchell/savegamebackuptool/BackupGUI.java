@@ -229,6 +229,22 @@ public class BackupGUI extends JFrame {
         table.setShowVerticalLines(false);
         table.getTableHeader().setReorderingAllowed(false);
         pack();
+        double buttonSize;
+        try {
+            buttonSize = (double) table.getSize().height / backupTool.getConfigs().size();
+        } catch (Exception e) {
+            buttonSize = .0;
+        }
+        int maxTableHeight =
+                (table.getSize().height > (int) (buttonSize * 5) ? (int) (buttonSize * 5)
+                        : table.getSize().height) + 3;
+        layout.setVerticalGroup(
+                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(scrollPane, maxTableHeight, maxTableHeight,
+                                        maxTableHeight)
+                                .addComponent(textScrollPane, GroupLayout.PREFERRED_SIZE, 1,
+                                        Short.MAX_VALUE)));
     }
 
     public void resetButton(BackupConfig config) {
