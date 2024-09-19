@@ -101,6 +101,10 @@ public class BackupGUI extends JFrame {
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException
                 | UnsupportedLookAndFeelException e) {
         }
+        String[] keys = {"Button.font", "Label.font", "TextArea.font"};
+        for (String key : keys)
+            UIManager.put(key,
+                    UIManager.getLookAndFeel().getDefaults().getFont(key).deriveFont((float) 12));
         backupTool = new BackupToolBase();
         backupTool.setBackupThreads(new ArrayList<BackupThread>());
         backupTool.setConfigs(configs);
@@ -186,6 +190,7 @@ public class BackupGUI extends JFrame {
         });
         table.setDefaultRenderer(JButton.class, new ButtonRenderer());
         table.getTableHeader().setUI(null);
+        table.setBackground(UIManager.getColor("Panel.background"));
     }
 
     public void initButtons() {
