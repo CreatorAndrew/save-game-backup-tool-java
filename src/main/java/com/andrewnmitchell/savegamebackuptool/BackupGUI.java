@@ -146,12 +146,12 @@ public class BackupGUI extends JFrame {
                     exit();
             }
         });
+        setIconImage(icon);
         initButtons();
         initComponents();
         setLocationRelativeTo(null);
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setTitle(TITLE);
-        setVisible(!startHidden);
         invisibleWindow = new JFrame();
         invisibleWindow.setType(JFrame.Type.UTILITY);
         invisibleWindow.setUndecorated(true);
@@ -168,6 +168,7 @@ public class BackupGUI extends JFrame {
             }
         });
         addTrayIcon();
+        setVisible(!startHidden);
     }
 
     public void addToTextArea(String text) {
