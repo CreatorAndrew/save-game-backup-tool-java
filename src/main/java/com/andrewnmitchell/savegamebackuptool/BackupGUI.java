@@ -232,7 +232,7 @@ public class BackupGUI extends JFrame {
         double cellHeight;
         try {
             cellHeight = (double) table.getHeight() / backupTool.getConfigs().size();
-        } catch (Exception e) {
+        } catch (ArithmeticException e) {
             cellHeight = .0;
         }
         int maxTableHeight = (table.getHeight() > (int) (cellHeight * 5) ? (int) (cellHeight * 5)
