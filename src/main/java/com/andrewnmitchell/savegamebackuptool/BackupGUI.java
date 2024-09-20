@@ -140,7 +140,6 @@ public class BackupGUI extends JFrame {
         tableModel.setDataVector(rows, new Object[] {"configs", "buttons"});
         table.getColumn("buttons").setCellRenderer(new ButtonRenderer());
         table.getColumn("buttons").setCellEditor(new ButtonEditor(new JCheckBox()));
-        // Make the titles of the backup configurations unselectable and uneditable
         table.getColumn("configs").setCellRenderer(new TableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -148,6 +147,7 @@ public class BackupGUI extends JFrame {
                 return new JLabel(value.toString());
             }
         });
+        // Make the titles of the backup configurations unselectable and uneditable
         table.getColumn("configs").setCellEditor(new TableCellEditor() {
             String label = "";
 
