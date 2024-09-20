@@ -23,11 +23,11 @@ public class BackupThread extends Thread {
 
     public BackupThread(BackupConfig config, double interval, boolean usePrompt,
             BackupToolBase backupTool, BackupGUI backupGUI) {
-        stopFilePath = applyWorkingDirectory("./.stop" + config.getPath()
+        stopFilePath = applyWorkingDirectory("./.stop" + config.getName()
                 .substring(0,
-                        config.getPath().toLowerCase().endsWith(".json")
-                                ? config.getPath().toLowerCase().lastIndexOf(".json")
-                                : config.getPath().length())
+                        config.getName().toLowerCase().endsWith(".json")
+                                ? config.getName().toLowerCase().lastIndexOf(".json")
+                                : config.getName().length())
                 .replace(".json", ""));
         this.backupGUI = backupGUI;
         this.backupTool = backupTool;
@@ -81,7 +81,7 @@ public class BackupThread extends Thread {
                     Thread.sleep((long) (interval * 1000));
                 } catch (InterruptedException e) {
                 }
-                if (watchdog(config.getPath(), backupGUI, usePrompt, firstRun)
+                if (watchdog(config.getName(), backupGUI, usePrompt, firstRun)
                         || getFilesInLowerCase(applyWorkingDirectory(".")).contains(
                                 (stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1))
                                         .toLowerCase())) {

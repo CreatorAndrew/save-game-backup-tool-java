@@ -15,13 +15,14 @@ import static com.andrewnmitchell.savegamebackuptool.BackupThread.*;
 import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
 
 class MasterConfig {
-    private BackupConfig[] configurations;
+    @SerializedName("configurations")
+    private BackupConfig[] configs;
     @SerializedName("default")
     private String defaultConfigName;
     private Double interval;
 
     public BackupConfig[] getConfigs() {
-        return configurations;
+        return configs;
     }
 
     public String getDefaultConfigName() {
@@ -53,7 +54,7 @@ public class BackupTool extends BackupToolBase {
         setConfigsUsed(new ArrayList<BackupConfig>());
         for (BackupConfig config : getConfigs())
             config.setUUID(UUID.randomUUID());
-        String configPath = null;
+        String configFile = null;
         boolean skipChoice = false, noGUI = false;
         for (int i = 0; i < args.length; i++)
             switch (args[i].toLowerCase()) {
@@ -65,20 +66,20 @@ public class BackupTool extends BackupToolBase {
                     break;
             }
         if (skipChoice)
-            configPath = masterConfig.getDefaultConfigName();
+            configFile = masterConfig.getDefaultConfigName();
         for (int i = 0; i < args.length && args.length > 1 && !skipChoice; i++)
             if (args[i].toLowerCase().equals("--config") && i < args.length - 1) {
                 for (String file : new File(applyWorkingDirectory(".")).list())
                     if (file.toLowerCase().endsWith(".json") && file.toLowerCase()
                             .equals(args[i + 1].toLowerCase().replace(".json", "") + ".json")) {
-                        configPath = file;
+                        configFile = file;
                         break;
                     }
                 break;
             }
         if (noGUI) {
             setStopQueue(new ArrayList<UUID>());
-            if (configPath == null) {
+            if (configFile == null) {
                 boolean continueRunning = true;
                 BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
                 System.out.println("Enter in \"help\" or \"?\" for assistance.");
@@ -88,7 +89,7 @@ public class BackupTool extends BackupToolBase {
                     switch (choice.toLowerCase()) {
                         case "start": {
                             BackupConfig config =
-                                    addOrRemoveConfig(input, configPath, getConfigs());
+                                    addOrRemoveConfig(input, configFile, getConfigs());
                             if (getConfigsUsed().contains(config))
                                 System.out.println("That configuration is already in use");
                             else
@@ -97,7 +98,7 @@ public class BackupTool extends BackupToolBase {
                         }
                         case "stop": {
                             BackupConfig config =
-                                    addOrRemoveConfig(input, configPath, getConfigs());
+                                    addOrRemoveConfig(input, configFile, getConfigs());
                             if (getConfigsUsed().contains(config))
                                 removeConfig(this, config);
                             else
@@ -128,7 +129,7 @@ public class BackupTool extends BackupToolBase {
                 input.close();
             } else {
                 getBackupThreads().add(new BackupThread(
-                        new BackupConfig(masterConfig.getDefaultConfigName(), configPath),
+                        new BackupConfig(masterConfig.getDefaultConfigName(), configFile),
                         masterConfig.getInterval(), false, this));
                 getBackupThreads().get(getBackupThreads().size() - 1).start();
             }
@@ -141,10 +142,10 @@ public class BackupTool extends BackupToolBase {
         BackupTool backupTool = new BackupTool(args);
     }
 
-    public BackupConfig addOrRemoveConfig(BufferedReader input, String configPath,
+    public BackupConfig addOrRemoveConfig(BufferedReader input, String configFile,
             List<BackupConfig> configs) throws IOException {
         BackupConfig config = null;
-        if (configPath == null) {
+        if (configFile == null) {
             System.out.println("Select one of the following configurations:");
             for (int i = 0; i < configs.size(); i++)
                 System.out.println("    " + i + ": " + configs.get(i).getName());
