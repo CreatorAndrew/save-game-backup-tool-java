@@ -236,7 +236,7 @@ public class BackupGUI extends JFrame {
             cellHeight = .0;
         }
         int maxTableHeight = (table.getHeight() > (int) (cellHeight * 5) ? (int) (cellHeight * 5)
-                : table.getHeight()) + 3;
+                : table.getHeight()) + 5;
         layout.setVerticalGroup(
                 layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                         .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
