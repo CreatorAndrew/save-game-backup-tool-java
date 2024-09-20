@@ -56,8 +56,8 @@ public class BackupTool extends BackupToolBase {
             config.setUUID(UUID.randomUUID());
         String configFile = null;
         boolean skipChoice = false, noGUI = false;
-        for (int i = 0; i < args.length; i++)
-            switch (args[i].toLowerCase()) {
+        for (String arg : args)
+            switch (arg.toLowerCase()) {
                 case "--no-gui":
                     noGUI = true;
                     break;
