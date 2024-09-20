@@ -19,8 +19,9 @@ public class BackupUtils {
     public static String applyWorkingDirectory(String path) {
         String tempPath = path.replace("\\", "/"), workingDirectory = "";
         try {
-            workingDirectory = (BackupWatchdog.class.getProtectionDomain().getCodeSource()
-                    .getLocation().toURI()).getPath().replace("\\", "/");
+            workingDirectory =
+                    (BackupUtils.class.getProtectionDomain().getCodeSource().getLocation().toURI())
+                            .getPath().replace("\\", "/");
         } catch (URISyntaxException e) {
         }
         workingDirectory = workingDirectory.substring(0, workingDirectory.lastIndexOf("/"));
