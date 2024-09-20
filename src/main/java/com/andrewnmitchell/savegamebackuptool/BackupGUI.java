@@ -149,7 +149,6 @@ public class BackupGUI extends JFrame {
         setIconImage(icon);
         initButtons();
         initComponents();
-        setLocationRelativeTo(null);
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setTitle(TITLE);
         invisibleWindow = new JFrame();
@@ -168,6 +167,7 @@ public class BackupGUI extends JFrame {
             }
         });
         setVisible(!startHidden);
+        setLocationRelativeTo(null);
         addTrayIcon();
     }
 
