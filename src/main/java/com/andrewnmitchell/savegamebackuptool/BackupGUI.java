@@ -164,7 +164,7 @@ public class BackupGUI extends JFrame {
             public void focusLost(FocusEvent e) {
                 if (trayMenu.isVisible())
                     trayMenu.setVisible(false);
-                invisibleWindow.dispose();
+                invisibleWindow.setVisible(false);
             }
         });
         addTrayIcon();
@@ -287,6 +287,7 @@ public class BackupGUI extends JFrame {
         systemTray.remove(trayIcon);
         removeAllConfigs(backupTool, self);
         setVisible(false);
+        invisibleWindow.dispose();
         dispose();
     }
 
