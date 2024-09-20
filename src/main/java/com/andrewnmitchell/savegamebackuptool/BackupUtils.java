@@ -17,23 +17,23 @@ public class BackupUtils {
 
     // This method makes it so that this program treats the filesystem as relative to its own path.
     public static String applyWorkingDirectory(String path) {
-        String tempPath = path.replace("\\", "/"), replacement = "";
+        String tempPath = path.replace("\\", "/"), workingDirectory = "";
         try {
-            replacement = (BackupWatchdog.class.getProtectionDomain().getCodeSource().getLocation()
-                    .toURI()).getPath().replace("\\", "/");
+            workingDirectory = (BackupWatchdog.class.getProtectionDomain().getCodeSource()
+                    .getLocation().toURI()).getPath().replace("\\", "/");
         } catch (URISyntaxException e) {
         }
-        replacement = replacement.substring(0, replacement.lastIndexOf("/"));
+        workingDirectory = workingDirectory.substring(0, workingDirectory.lastIndexOf("/"));
         if (tempPath.equals("."))
-            tempPath = tempPath.replace(".", replacement);
+            tempPath = tempPath.replace(".", workingDirectory);
         else if (tempPath.equals(".."))
-            tempPath =
-                    tempPath.replace("..", replacement.substring(0, replacement.lastIndexOf("/")));
+            tempPath = tempPath.replace("..",
+                    workingDirectory.substring(0, workingDirectory.lastIndexOf("/")));
         else if (tempPath.startsWith("./"))
-            tempPath = tempPath.replaceFirst("./", replacement + "/");
+            tempPath = tempPath.replaceFirst("./", workingDirectory + "/");
         else if (tempPath.startsWith("../"))
             tempPath = tempPath.replaceFirst("../",
-                    replacement.substring(0, replacement.lastIndexOf("/") + 1));
+                    workingDirectory.substring(0, workingDirectory.lastIndexOf("/") + 1));
         if (getProperty("os.name").contains("Windows") && tempPath.startsWith("/"))
             tempPath = tempPath.substring(1);
         return tempPath;
