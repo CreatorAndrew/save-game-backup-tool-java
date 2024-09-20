@@ -167,8 +167,8 @@ public class BackupGUI extends JFrame {
                 invisibleWindow.setVisible(false);
             }
         });
-        addTrayIcon();
         setVisible(!startHidden);
+        addTrayIcon();
     }
 
     public void addToTextArea(String text) {
@@ -209,7 +209,7 @@ public class BackupGUI extends JFrame {
                     }
                     case MouseEvent.BUTTON3: {
                         invisibleWindow.setVisible(true);
-                        trayMenu.setLocation(e.getX(), e.getY());
+                        trayMenu.setLocation(e.getX(), e.getY() - 50);
                         trayMenu.setVisible(true);
                         break;
                     }
