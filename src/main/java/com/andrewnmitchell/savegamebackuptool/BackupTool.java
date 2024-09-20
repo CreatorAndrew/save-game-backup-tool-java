@@ -148,7 +148,7 @@ public class BackupTool extends BackupToolBase {
         if (configFile == null) {
             System.out.println("Select one of the following configurations:");
             for (int i = 0; i < configs.size(); i++)
-                System.out.println("    " + i + ": " + configs.get(i).getName());
+                System.out.println("    " + i + ": " + configs.get(i).getTitle());
             String choice = null;
             while (choice == null) {
                 System.out.print("Enter in an option number here: ");

@@ -134,7 +134,7 @@ public class BackupGUI extends JFrame {
     public void drawTable(DefaultTableModel tableModel) {
         Object[][] rows = new Object[backupTool.getConfigs().size()][2];
         for (int i = 0; i < backupTool.getConfigs().size(); i++) {
-            rows[i][0] = backupTool.getConfigs().get(i).getName();
+            rows[i][0] = backupTool.getConfigs().get(i).getTitle();
             rows[i][1] = buttons[i].getText();
         }
         tableModel.setDataVector(rows, new Object[] {"configs", "buttons"});
