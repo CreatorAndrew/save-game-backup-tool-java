@@ -101,8 +101,7 @@ public class BackupGUI extends JFrame {
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException
                 | UnsupportedLookAndFeelException e) {
         }
-        String[] keys = {"Button.font", "Label.font", "TextArea.font"};
-        for (String key : keys)
+        for (String key : new String[] {"Button.font", "Label.font", "TextArea.font"})
             UIManager.put(key,
                     UIManager.getLookAndFeel().getDefaults().getFont(key).deriveFont((float) 12));
         backupTool = new BackupToolBase();
@@ -138,18 +137,18 @@ public class BackupGUI extends JFrame {
             rows[i][0] = backupTool.getConfigs().get(i).getName();
             rows[i][1] = buttons[i].getText();
         }
-        tableModel.setDataVector(rows, new Object[] {"Configuration", "Button"});
-        table.getColumn("Button").setCellRenderer(new ButtonRenderer());
-        table.getColumn("Button").setCellEditor(new ButtonEditor(new JCheckBox()));
+        tableModel.setDataVector(rows, new Object[] {"configs", "buttons"});
+        table.getColumn("buttons").setCellRenderer(new ButtonRenderer());
+        table.getColumn("buttons").setCellEditor(new ButtonEditor(new JCheckBox()));
         // Make the titles of the backup configurations unselectable and uneditable
-        table.getColumn("Configuration").setCellRenderer(new TableCellRenderer() {
+        table.getColumn("configs").setCellRenderer(new TableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 return new JLabel(value.toString());
             }
         });
-        table.getColumn("Configuration").setCellEditor(new TableCellEditor() {
+        table.getColumn("configs").setCellEditor(new TableCellEditor() {
             String label = "";
 
             @Override
