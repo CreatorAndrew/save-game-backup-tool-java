@@ -8,8 +8,8 @@ public class BackupConfig {
     private UUID uuid;
 
     public BackupConfig(String title, String name) {
-        setTitle(title);
         setName(name);
+        setTitle(title);
     }
 
     public BackupConfig() {}
