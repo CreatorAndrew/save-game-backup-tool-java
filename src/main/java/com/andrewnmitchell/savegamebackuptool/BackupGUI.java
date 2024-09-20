@@ -8,6 +8,8 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -20,12 +22,14 @@ import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -46,13 +50,15 @@ public class BackupGUI extends JFrame {
     private JButton[] buttons;
     private BufferedImage icon;
     private double interval;
+    private JFrame invisibleWindow;
     private JScrollPane scrollPane, textScrollPane;
     private BackupGUI self = this;
     private SystemTray systemTray = SystemTray.getSystemTray();
     private JTable table;
     private JTextArea textArea;
-    private MenuItem toggleShownItem;
+    private JMenuItem toggleShownItem;
     private TrayIcon trayIcon;
+    private JPopupMenu trayMenu;
 
     class ButtonEditor extends DefaultCellEditor {
         private JButton button;
@@ -117,9 +123,9 @@ public class BackupGUI extends JFrame {
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException
                 | UnsupportedLookAndFeelException e) {
         }
-        for (String key : new String[] {"Button.font", "Label.font", "TextArea.font"})
-            UIManager.put(key,
-                    UIManager.getLookAndFeel().getDefaults().getFont(key).deriveFont((float) 12));
+        for (String key : new String[] {"Button", "Label", "MenuItem", "TextArea"})
+            UIManager.put(key + ".font", UIManager.getLookAndFeel().getDefaults()
+                    .getFont(key + ".font").deriveFont(12f));
         try {
             icon = ImageIO.read(new File(applyWorkingDirectory("./BackupTool.png")));
         } catch (IOException e) {
@@ -133,7 +139,7 @@ public class BackupGUI extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
-                toggleShownItem.setLabel(HIDDEN_LABEL);
+                toggleShownItem.setText(HIDDEN_LABEL);
                 if (hideOnClose)
                     setVisible(false);
                 else
@@ -146,6 +152,21 @@ public class BackupGUI extends JFrame {
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setTitle(TITLE);
         setVisible(!startHidden);
+        invisibleWindow = new JFrame();
+        invisibleWindow.setType(JFrame.Type.UTILITY);
+        invisibleWindow.setUndecorated(true);
+        invisibleWindow.setOpacity(0f);
+        invisibleWindow.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {}
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (trayMenu.isVisible())
+                    trayMenu.setVisible(false);
+                invisibleWindow.dispose();
+            }
+        });
         addTrayIcon();
     }
 
@@ -155,30 +176,43 @@ public class BackupGUI extends JFrame {
     }
 
     public void addTrayIcon() {
-        PopupMenu trayPopupMenu = new PopupMenu();
-        MenuItem exitItem = new MenuItem("Exit");
-        toggleShownItem = new MenuItem(isVisible() ? SHOWN_LABEL : HIDDEN_LABEL);
+        trayMenu = new JPopupMenu();
+        JMenuItem exitItem = new JMenuItem("Exit");
+        toggleShownItem = new JMenuItem(isVisible() ? SHOWN_LABEL : HIDDEN_LABEL);
         exitItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                trayMenu.setVisible(false);
                 exit();
             }
         });
         toggleShownItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                trayMenu.setVisible(false);
+                toggleShownItem.setText(isVisible() ? HIDDEN_LABEL : SHOWN_LABEL);
                 setVisible(!isVisible());
-                toggleShownItem.setLabel(isVisible() ? SHOWN_LABEL : HIDDEN_LABEL);
             }
         });
-        trayPopupMenu.add(toggleShownItem);
-        trayPopupMenu.add(exitItem);
-        trayIcon = new TrayIcon(icon, TITLE, trayPopupMenu);
-        trayIcon.addActionListener(new ActionListener() {
+        trayMenu.add(toggleShownItem);
+        trayMenu.add(exitItem);
+        trayIcon = new TrayIcon(icon, TITLE);
+        trayIcon.addMouseListener(new MouseAdapter() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                setVisible(!isVisible());
-                toggleShownItem.setLabel(isVisible() ? SHOWN_LABEL : HIDDEN_LABEL);
+            public void mouseClicked(MouseEvent e) {
+                switch (e.getButton()) {
+                    case MouseEvent.BUTTON1: {
+                        toggleShownItem.setText(isVisible() ? HIDDEN_LABEL : SHOWN_LABEL);
+                        setVisible(!isVisible());
+                        break;
+                    }
+                    case MouseEvent.BUTTON3: {
+                        invisibleWindow.setVisible(true);
+                        trayMenu.setLocation(e.getX(), e.getY());
+                        trayMenu.setVisible(true);
+                        break;
+                    }
+                }
             }
         });
         trayIcon.setImageAutoSize(true);
