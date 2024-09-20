@@ -1,5 +1,6 @@
 package com.andrewnmitchell.savegamebackuptool;
 
+import javax.imageio.ImageIO;
 import javax.swing.DefaultCellEditor;
 import javax.swing.event.CellEditorListener;
 import javax.swing.GroupLayout;
@@ -15,29 +16,43 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
 import java.util.UUID;
 import static com.andrewnmitchell.savegamebackuptool.BackupThread.*;
+import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
 
 public class BackupGUI extends JFrame {
-    private final String DISABLED_LABEL = "Start", ENABLED_LABEL = "Stop";
+    private final String DISABLED_LABEL = "Start", ENABLED_LABEL = "Stop", HIDDEN_LABEL = "Show",
+            SHOWN_LABEL = "Hide", TITLE = "Save Game Backup Tool";
     private final int FRAME_HEIGHT = 384, FRAME_WIDTH = 512;
     private BackupToolBase backupTool;
     private JButton[] buttons;
+    private BufferedImage icon;
     private double interval;
     private JScrollPane scrollPane, textScrollPane;
     private BackupGUI self = this;
+    private SystemTray systemTray = SystemTray.getSystemTray();
     private JTable table;
     private JTextArea textArea;
+    private MenuItem toggleShownItem;
+    private TrayIcon trayIcon;
 
     class ButtonEditor extends DefaultCellEditor {
         private JButton button;
@@ -95,7 +110,8 @@ public class BackupGUI extends JFrame {
         }
     }
 
-    public BackupGUI(List<BackupConfig> configs, double interval) {
+    public BackupGUI(List<BackupConfig> configs, boolean hideOnClose, double interval,
+            boolean startHidden) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException
@@ -104,31 +120,72 @@ public class BackupGUI extends JFrame {
         for (String key : new String[] {"Button.font", "Label.font", "TextArea.font"})
             UIManager.put(key,
                     UIManager.getLookAndFeel().getDefaults().getFont(key).deriveFont((float) 12));
+        try {
+            icon = ImageIO.read(new File(applyWorkingDirectory("./BackupTool.png")));
+        } catch (IOException e) {
+        }
         backupTool = new BackupToolBase();
         backupTool.setBackupThreads(new ArrayList<BackupThread>());
         backupTool.setConfigs(configs);
         backupTool.setConfigsUsed(new ArrayList<BackupConfig>());
         backupTool.setStopQueue(new ArrayList<UUID>());
         this.interval = interval;
-        initButtons();
-        initComponents();
-        setTitle("Save Game Backup Tool");
-        setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
-        setLocationRelativeTo(null);
-        setVisible(true);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
-                removeAllConfigs(backupTool, self);
-                setVisible(false);
-                dispose();
+                toggleShownItem.setLabel(HIDDEN_LABEL);
+                if (hideOnClose)
+                    setVisible(false);
+                else
+                    exit();
             }
         });
+        initButtons();
+        initComponents();
+        setLocationRelativeTo(null);
+        setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
+        setTitle(TITLE);
+        setVisible(!startHidden);
+        addTrayIcon();
     }
 
     public void addToTextArea(String text) {
         textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
         textArea.getCaret().setDot(Integer.MAX_VALUE);
+    }
+
+    public void addTrayIcon() {
+        PopupMenu trayPopupMenu = new PopupMenu();
+        MenuItem exitItem = new MenuItem("Exit");
+        toggleShownItem = new MenuItem(isVisible() ? SHOWN_LABEL : HIDDEN_LABEL);
+        exitItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                exit();
+            }
+        });
+        toggleShownItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisible(!isVisible());
+                toggleShownItem.setLabel(isVisible() ? SHOWN_LABEL : HIDDEN_LABEL);
+            }
+        });
+        trayPopupMenu.add(toggleShownItem);
+        trayPopupMenu.add(exitItem);
+        trayIcon = new TrayIcon(icon, TITLE, trayPopupMenu);
+        trayIcon.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisible(!isVisible());
+                toggleShownItem.setLabel(isVisible() ? SHOWN_LABEL : HIDDEN_LABEL);
+            }
+        });
+        trayIcon.setImageAutoSize(true);
+        try {
+            systemTray.add(trayIcon);
+        } catch (AWTException awtException) {
+        }
     }
 
     public void drawTable(DefaultTableModel tableModel) {
@@ -190,6 +247,13 @@ public class BackupGUI extends JFrame {
         table.setDefaultRenderer(JButton.class, new ButtonRenderer());
         table.getTableHeader().setUI(null);
         table.setBackground(UIManager.getColor("Panel.background"));
+    }
+
+    public void exit() {
+        systemTray.remove(trayIcon);
+        removeAllConfigs(backupTool, self);
+        setVisible(false);
+        dispose();
     }
 
     public void initButtons() {

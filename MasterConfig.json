@@ -10,5 +10,8 @@
         }
     ],
     "default": "Bully",
-    "interval": 0.1
+    "interval": 0.1,
+    "createShortcut": true,
+    "hideOnClose": false,
+    "startHidden": false
 }

@@ -20,6 +20,7 @@ class MasterConfig {
     @SerializedName("default")
     private String defaultConfigName;
     private Double interval;
+    private Boolean createShortcut, startHidden, hideOnClose;
 
     public BackupConfig[] getConfigs() {
         return configs;
@@ -29,10 +30,28 @@ class MasterConfig {
         return defaultConfigName;
     }
 
+    public boolean getHideOnClose() {
+        if (hideOnClose == null)
+            return false;
+        return hideOnClose;
+    }
+
     public double getInterval() {
         if (interval == null)
             return 0;
         return interval;
+    }
+
+    public boolean getStartHidden() {
+        if (startHidden == null)
+            return false;
+        return startHidden;
+    }
+
+    public boolean getCreateShortcut() {
+        if (createShortcut == null)
+            return false;
+        return createShortcut;
     }
 }
 
@@ -134,7 +153,8 @@ public class BackupTool extends BackupToolBase {
                 getBackupThreads().get(getBackupThreads().size() - 1).start();
             }
         } else {
-            BackupGUI gui = new BackupGUI(getConfigs(), masterConfig.getInterval());
+            BackupGUI gui = new BackupGUI(getConfigs(), masterConfig.getHideOnClose(),
+                    masterConfig.getInterval(), masterConfig.getStartHidden());
         }
     }
 
