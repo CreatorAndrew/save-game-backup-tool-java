@@ -1,18 +1,26 @@
 package com.andrewnmitchell.savegamebackuptool;
 
 import com.google.gson.annotations.SerializedName;
+import mslinks.ShellLink;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import static com.andrewnmitchell.savegamebackuptool.BackupThread.*;
 import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
+import static java.lang.System.getProperty;
 
 class MasterConfig {
     @SerializedName("configurations")
@@ -24,6 +32,12 @@ class MasterConfig {
 
     public BackupConfig[] getConfigs() {
         return configs;
+    }
+
+    public boolean getCreateShortcut() {
+        if (createShortcut == null)
+            return false;
+        return createShortcut;
     }
 
     public String getDefaultConfigName() {
@@ -47,12 +61,6 @@ class MasterConfig {
             return false;
         return startHidden;
     }
-
-    public boolean getCreateShortcut() {
-        if (createShortcut == null)
-            return false;
-        return createShortcut;
-    }
 }
 
 
@@ -68,6 +76,33 @@ public class BackupTool extends BackupToolBase {
         FileReader reader = new FileReader(applyWorkingDirectory("./MasterConfig.json"));
         MasterConfig masterConfig = (new Gson()).fromJson(reader, MasterConfig.class);
         reader.close();
+        if (masterConfig.getCreateShortcut()) {
+            if (getProperty("os.name").contains("Linux")) {
+                String shortcutPath =
+                        getProperty("user.home") + "/.local/share/applications/BackupTool.desktop";
+                FileWriter shortcutCreator = new FileWriter(shortcutPath);
+                shortcutCreator.write(String.join("\n", "[Desktop Entry]", "Type=Application",
+                        "Categories=Game;Utility", "Name=Save Game Backup Tool",
+                        "Exec=\"" + applyWorkingDirectory("./Launch.sh") + "\"",
+                        "Icon=" + applyWorkingDirectory("./BackupTool.png")));
+                shortcutCreator.close();
+                Set<PosixFilePermission> perms = new HashSet<>();
+                perms.add(PosixFilePermission.OWNER_READ);
+                perms.add(PosixFilePermission.OWNER_EXECUTE);
+                perms.add(PosixFilePermission.OWNER_WRITE);
+                Files.setPosixFilePermissions(Paths.get(shortcutPath), perms);
+            }
+            if (getProperty("os.name").contains("Windows"))
+                try {
+                    ShellLink.createLink(applyWorkingDirectory("./BackupTool.jar"), System
+                            .getenv("APPDATA")
+                            + "/Microsoft/Windows/Start Menu/Programs/Save Game Backup Tool.lnk");
+                } catch (Exception e) {
+                    ShellLink.createLink(applyWorkingDirectory("./BackupTool.jar"),
+                            getProperty("user.home")
+                                    + "/Start Menu/Programs/Save Game Backup Tool.lnk");
+                }
+        }
         setBackupThreads(new ArrayList<BackupThread>());
         setConfigs(Arrays.asList(masterConfig.getConfigs()));
         setConfigsUsed(new ArrayList<BackupConfig>());
