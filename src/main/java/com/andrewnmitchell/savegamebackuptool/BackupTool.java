@@ -124,8 +124,8 @@ public class BackupTool extends BackupToolBase {
                         "Icon=" + applyWorkingDirectory("./BackupTool.png")));
                 shortcutCreator.close();
                 Set<PosixFilePermission> perms = new HashSet<>();
-                perms.add(PosixFilePermission.OWNER_READ);
                 perms.add(PosixFilePermission.OWNER_EXECUTE);
+                perms.add(PosixFilePermission.OWNER_READ);
                 perms.add(PosixFilePermission.OWNER_WRITE);
                 Files.setPosixFilePermissions(Paths.get(shortcutPath), perms);
             }
