@@ -2,6 +2,7 @@ package com.andrewnmitchell.savegamebackuptool;
 
 import com.google.gson.annotations.SerializedName;
 import mslinks.ShellLink;
+import mslinks.ShellLinkException;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,6 +73,42 @@ public class BackupTool extends BackupToolBase {
         }
     }
 
+    public static BackupConfig addOrRemoveConfig(BufferedReader input, String configFile,
+            List<BackupConfig> configs) throws IOException {
+        BackupConfig config = null;
+        if (configFile == null) {
+            System.out.println("Select one of the following configurations:");
+            for (int i = 0; i < configs.size(); i++)
+                System.out.println("    " + i + ": " + configs.get(i).getTitle());
+            String choice = null;
+            while (choice == null) {
+                System.out.print("Enter in an option number here: ");
+                choice = input.readLine();
+                try {
+                    if (Integer.parseInt(choice) >= configs.size()
+                            || Integer.parseInt(choice) < 0) {
+                        System.out.println("Not a valid option number. Try again.");
+                        choice = null;
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input value. Try again with a numeric value.");
+                    choice = null;
+                }
+            }
+            config = configs.get(Integer.parseInt(choice));
+        }
+        return config;
+    }
+
+    public static void createShortcutAt(String shortcutPath) throws IOException {
+        new ShellLink().setIconLocation(applyWorkingDirectory("./BackupTool.ico"))
+                .setTarget(applyWorkingDirectory("./BackupTool.jar")).saveTo(shortcutPath);
+    }
+
+    public static void main(String args[]) {
+        BackupTool backupTool = new BackupTool(args);
+    }
+
     public void run(String args[]) throws IOException {
         FileReader reader = new FileReader(applyWorkingDirectory("./MasterConfig.json"));
         MasterConfig masterConfig = (new Gson()).fromJson(reader, MasterConfig.class);
@@ -92,16 +129,17 @@ public class BackupTool extends BackupToolBase {
                 perms.add(PosixFilePermission.OWNER_WRITE);
                 Files.setPosixFilePermissions(Paths.get(shortcutPath), perms);
             }
-            if (getProperty("os.name").contains("Windows"))
+            if (getProperty("os.name").contains("Windows")) {
                 try {
-                    ShellLink.createLink(applyWorkingDirectory("./BackupTool.jar"), System
-                            .getenv("APPDATA")
+                    createShortcutAt(System.getenv("APPDATA")
                             + "/Microsoft/Windows/Start Menu/Programs/Save Game Backup Tool.lnk");
-                } catch (Exception e) {
-                    ShellLink.createLink(applyWorkingDirectory("./BackupTool.jar"),
-                            getProperty("user.home")
-                                    + "/Start Menu/Programs/Save Game Backup Tool.lnk");
+
+                } catch (IOException e) {
+                    createShortcutAt(getProperty("user.home")
+                            + "/Start Menu/Programs/Save Game Backup Tool.lnk");
+
                 }
+            }
         }
         setBackupThreads(new ArrayList<BackupThread>());
         setConfigs(Arrays.asList(masterConfig.getConfigs()));
@@ -191,36 +229,5 @@ public class BackupTool extends BackupToolBase {
             BackupGUI gui = new BackupGUI(getConfigs(), masterConfig.getHideOnClose(),
                     masterConfig.getInterval(), masterConfig.getStartHidden());
         }
-    }
-
-    public static void main(String args[]) {
-        BackupTool backupTool = new BackupTool(args);
-    }
-
-    public BackupConfig addOrRemoveConfig(BufferedReader input, String configFile,
-            List<BackupConfig> configs) throws IOException {
-        BackupConfig config = null;
-        if (configFile == null) {
-            System.out.println("Select one of the following configurations:");
-            for (int i = 0; i < configs.size(); i++)
-                System.out.println("    " + i + ": " + configs.get(i).getTitle());
-            String choice = null;
-            while (choice == null) {
-                System.out.print("Enter in an option number here: ");
-                choice = input.readLine();
-                try {
-                    if (Integer.parseInt(choice) >= configs.size()
-                            || Integer.parseInt(choice) < 0) {
-                        System.out.println("Not a valid option number. Try again.");
-                        choice = null;
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid input value. Try again with a numeric value.");
-                    choice = null;
-                }
-            }
-            config = configs.get(Integer.parseInt(choice));
-        }
-        return config;
     }
 }

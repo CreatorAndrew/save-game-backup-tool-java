@@ -3,9 +3,8 @@ mkdir dist
 cp ./target/save-game-backup-tool*.jar ./dist/BackupTool.jar
 cp ./BackupTool.* ./dist
 cp ./Launch.sh ./dist
-chmod +x ./dist/BackupTool.*
-chmod -x ./dist/BackupTool.bat
-chmod +x ./dist/Launch.sh
+chmod +x ./dist/BackupTool.command
+chmod +x ./dist/*.sh
 cp ./*.json ./dist
 cp ./LICENSE.md ./dist
 cp -r ./Test ./dist
