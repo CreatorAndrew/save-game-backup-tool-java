@@ -115,19 +115,24 @@ public class BackupTool extends BackupToolBase {
         reader.close();
         if (masterConfig.getCreateShortcut()) {
             if (getProperty("os.name").contains("Linux")) {
-                String shortcutPath =
-                        getProperty("user.home") + "/.local/share/applications/BackupTool.desktop";
-                FileWriter shortcutCreator = new FileWriter(shortcutPath);
-                shortcutCreator.write(String.join("\n", "[Desktop Entry]", "Type=Application",
+                String shortcutPath = getProperty("user.home") + "/.local/share/applications/";
+                FileWriter[] shortcutCreator = {new FileWriter(shortcutPath + ".launchBackupTool"),
+                        new FileWriter(shortcutPath + "BackupTool.desktop")};
+                shortcutCreator[0].write("#!/bin/bash\njava -jar \""
+                        + applyWorkingDirectory("./BackupTool.jar") + "\"\n");
+                shortcutCreator[1].write(String.join("\n", "[Desktop Entry]", "Type=Application",
                         "Categories=Game;Utility", "Name=Save Game Backup Tool",
-                        "Exec=\"" + applyWorkingDirectory("./Launch.sh") + "\"",
-                        "Icon=" + applyWorkingDirectory("./BackupTool.png")));
-                shortcutCreator.close();
+                        "Exec=\"" + shortcutPath + ".launchBackupTool" + "\"",
+                        "Icon=" + applyWorkingDirectory("./BackupTool.ico")));
+                shortcutCreator[0].close();
+                shortcutCreator[1].close();
                 Set<PosixFilePermission> perms = new HashSet<>();
                 perms.add(PosixFilePermission.OWNER_EXECUTE);
                 perms.add(PosixFilePermission.OWNER_READ);
                 perms.add(PosixFilePermission.OWNER_WRITE);
-                Files.setPosixFilePermissions(Paths.get(shortcutPath), perms);
+                Files.setPosixFilePermissions(Paths.get(shortcutPath + ".launchBackupTool"), perms);
+                Files.setPosixFilePermissions(Paths.get(shortcutPath + "BackupTool.desktop"),
+                        perms);
             }
             if (getProperty("os.name").contains("Windows")) {
                 try {
