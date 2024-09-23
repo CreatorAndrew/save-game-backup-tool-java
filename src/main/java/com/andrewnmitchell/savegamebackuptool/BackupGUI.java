@@ -149,7 +149,9 @@ public class BackupGUI extends JFrame {
             }
         });
         setIconImage(icon);
-        initButtons();
+        buttons = new JButton[backupTool.getConfigs().size()];
+        for (int i = 0; i < buttons.length; i++)
+            buttons[i] = new JButton(DISABLED_LABEL);
         initComponents();
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setTitle(TITLE);
@@ -292,12 +294,6 @@ public class BackupGUI extends JFrame {
         setVisible(false);
         invisibleWindow.dispose();
         dispose();
-    }
-
-    public void initButtons() {
-        buttons = new JButton[backupTool.getConfigs().size()];
-        for (int i = 0; i < buttons.length; i++)
-            buttons[i] = new JButton(DISABLED_LABEL);
     }
 
     public void initComponents() {
