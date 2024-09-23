@@ -4,7 +4,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import static java.lang.System.getProperty;
+import static java.lang.System.*;
 
 public class BackupUtils {
     public static final String PROMPT = "> ";
@@ -52,7 +52,7 @@ public class BackupUtils {
     }
 
     public static void print(String string) {
-        System.out.print(string);
+        out.print(string);
     }
 
     public static void println() {
@@ -60,6 +60,6 @@ public class BackupUtils {
     }
 
     public static void println(String string) {
-        System.out.println(string);
+        out.println(string);
     }
 }
