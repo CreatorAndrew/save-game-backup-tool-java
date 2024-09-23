@@ -152,7 +152,42 @@ public class BackupGUI extends JFrame {
         buttons = new JButton[backupTool.getConfigs().size()];
         for (int i = 0; i < buttons.length; i++)
             buttons[i] = new JButton(DISABLED_LABEL);
-        initComponents();
+        DefaultTableModel tableModel = new DefaultTableModel();
+        table = new JTable(tableModel);
+        drawTable(tableModel);
+        scrollPane = new JScrollPane();
+        scrollPane.setViewportView(table);
+        add(scrollPane, "Center");
+        setDefaultCloseOperation(0);
+        textArea = new JTextArea();
+        textArea.setColumns(20);
+        textArea.setRows(5);
+        textArea.setEditable(false);
+        textScrollPane = new JScrollPane();
+        textScrollPane.setViewportView(textArea);
+        GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(layout.createParallelGroup(LEADING)
+                .addComponent(scrollPane, -2, 1, MAX_VALUE).addComponent(textScrollPane, TRAILING));
+        layout.setVerticalGroup(layout.createParallelGroup(LEADING).addGroup(TRAILING,
+                layout.createSequentialGroup().addComponent(scrollPane, -2, 1, MAX_VALUE)
+                        .addComponent(textScrollPane, -2, 1, MAX_VALUE)));
+        table.setShowHorizontalLines(false);
+        table.setShowVerticalLines(false);
+        table.getTableHeader().setReorderingAllowed(false);
+        pack();
+        double cellHeight;
+        try {
+            cellHeight = (double) table.getHeight() / backupTool.getConfigs().size();
+        } catch (ArithmeticException e) {
+            cellHeight = .0;
+        }
+        int maxTableHeight = (table.getHeight() > (int) (cellHeight * 5) ? (int) (cellHeight * 5)
+                : table.getHeight()) + 5;
+        layout.setVerticalGroup(layout.createParallelGroup(LEADING).addGroup(TRAILING,
+                layout.createSequentialGroup()
+                        .addComponent(scrollPane, maxTableHeight, maxTableHeight, maxTableHeight)
+                        .addComponent(textScrollPane, -2, 1, MAX_VALUE)));
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setTitle(TITLE);
         invisibleWindow = new JFrame();
@@ -294,45 +329,6 @@ public class BackupGUI extends JFrame {
         setVisible(false);
         invisibleWindow.dispose();
         dispose();
-    }
-
-    public void initComponents() {
-        DefaultTableModel tableModel = new DefaultTableModel();
-        table = new JTable(tableModel);
-        drawTable(tableModel);
-        scrollPane = new JScrollPane();
-        scrollPane.setViewportView(table);
-        add(scrollPane, "Center");
-        setDefaultCloseOperation(0);
-        textArea = new JTextArea();
-        textArea.setColumns(20);
-        textArea.setRows(5);
-        textArea.setEditable(false);
-        textScrollPane = new JScrollPane();
-        textScrollPane.setViewportView(textArea);
-        GroupLayout layout = new GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(layout.createParallelGroup(LEADING)
-                .addComponent(scrollPane, -2, 1, MAX_VALUE).addComponent(textScrollPane, TRAILING));
-        layout.setVerticalGroup(layout.createParallelGroup(LEADING).addGroup(TRAILING,
-                layout.createSequentialGroup().addComponent(scrollPane, -2, 1, MAX_VALUE)
-                        .addComponent(textScrollPane, -2, 1, MAX_VALUE)));
-        table.setShowHorizontalLines(false);
-        table.setShowVerticalLines(false);
-        table.getTableHeader().setReorderingAllowed(false);
-        pack();
-        double cellHeight;
-        try {
-            cellHeight = (double) table.getHeight() / backupTool.getConfigs().size();
-        } catch (ArithmeticException e) {
-            cellHeight = .0;
-        }
-        int maxTableHeight = (table.getHeight() > (int) (cellHeight * 5) ? (int) (cellHeight * 5)
-                : table.getHeight()) + 5;
-        layout.setVerticalGroup(layout.createParallelGroup(LEADING).addGroup(TRAILING,
-                layout.createSequentialGroup()
-                        .addComponent(scrollPane, maxTableHeight, maxTableHeight, maxTableHeight)
-                        .addComponent(textScrollPane, -2, 1, MAX_VALUE)));
     }
 
     public void resetButton(BackupConfig config) {
