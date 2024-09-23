@@ -2,11 +2,11 @@ package com.andrewnmitchell.savegamebackuptool;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
 import static com.andrewnmitchell.savegamebackuptool.BackupWatchdog.*;
+import static java.nio.file.Files.*;
+import static java.nio.file.Paths.*;
 
 public class BackupThread extends Thread {
     private BackupGUI backupGUI;
@@ -52,7 +52,7 @@ public class BackupThread extends Thread {
         backupTool.getStopQueue().add(config.getUUID());
         while (backupTool.getBackupThreads().get(backupTool.getConfigsUsed().indexOf(config))
                 .getEnabled())
-            System.out.print("");
+            print();
         backupTool.getStopQueue().remove(backupTool.getStopQueue().indexOf(config.getUUID()));
         backupTool.getBackupThreads().remove(backupTool.getConfigsUsed().indexOf(config));
         backupTool.getConfigsUsed().remove(backupTool.getConfigsUsed().indexOf(config));
@@ -63,7 +63,7 @@ public class BackupThread extends Thread {
     }
 
     public static void removeAllConfigs(BackupToolBase backupTool, BackupGUI backupGUI) {
-        for (BackupConfig config : new ArrayList<BackupConfig>(backupTool.getConfigsUsed()))
+        for (BackupConfig config : new ArrayList<>(backupTool.getConfigsUsed()))
             if (backupGUI == null)
                 removeConfig(backupTool, config);
             else
@@ -78,7 +78,7 @@ public class BackupThread extends Thread {
         try {
             while (!backupTool.getStopQueue().contains(config.getUUID()) && enabled) {
                 try {
-                    Thread.sleep((long) (interval * 1000));
+                    sleep((long) (interval * 1000));
                 } catch (InterruptedException e) {
                 }
                 if (watchdog(config.getName(), backupGUI, usePrompt, firstRun)
@@ -92,7 +92,7 @@ public class BackupThread extends Thread {
                             if (file.equalsIgnoreCase(
                                     stopFilePath.substring(stopFilePath.lastIndexOf("/") + 1)))
                                 try {
-                                    Files.delete(Paths.get(applyWorkingDirectory("./" + file)));
+                                    delete(get(applyWorkingDirectory("./" + file)));
                                 } catch (IOException e) {
                                 }
                     enabled = false;

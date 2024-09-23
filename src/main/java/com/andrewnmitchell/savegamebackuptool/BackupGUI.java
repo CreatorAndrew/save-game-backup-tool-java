@@ -1,6 +1,5 @@
 package com.andrewnmitchell.savegamebackuptool;
 
-import javax.imageio.ImageIO;
 import javax.swing.DefaultCellEditor;
 import javax.swing.event.CellEditorListener;
 import javax.swing.GroupLayout;
@@ -16,10 +15,8 @@ import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import java.awt.AWTException;
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.SystemTray;
@@ -38,13 +35,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
-import java.util.UUID;
 import static com.andrewnmitchell.savegamebackuptool.BackupThread.*;
 import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
+import static java.awt.SystemTray.*;
+import static java.awt.Window.Type.*;
+import static java.lang.Integer.*;
+import static javax.imageio.ImageIO.*;
+import static javax.swing.GroupLayout.Alignment.*;
+import static javax.swing.UIManager.*;
 
 public class BackupGUI extends JFrame {
-    private final String DISABLED_LABEL = "Start", ENABLED_LABEL = "Stop", HIDDEN_LABEL = "Show",
-            SHOWN_LABEL = "Hide", TITLE = "Save Game Backup Tool";
+    private final String DISABLED_LABEL = "Start", ENABLED_LABEL = "Stop", EXIT_LABEL = "Exit",
+            HIDDEN_LABEL = "Show", SHOWN_LABEL = "Hide", TITLE = "Save Game Backup Tool";
     private final int FRAME_HEIGHT = 384, FRAME_WIDTH = 512;
     private BackupToolBase backupTool;
     private JButton[] buttons;
@@ -53,7 +55,7 @@ public class BackupGUI extends JFrame {
     private JFrame invisibleWindow;
     private JScrollPane scrollPane, textScrollPane;
     private BackupGUI self = this;
-    private SystemTray systemTray = SystemTray.getSystemTray();
+    private SystemTray systemTray = getSystemTray();
     private JTable table;
     private JTextArea textArea;
     private JMenuItem toggleShownItem;
@@ -70,7 +72,7 @@ public class BackupGUI extends JFrame {
             button = new JButton();
             button.setOpaque(true);
             button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent event) {
+                public void actionPerformed(ActionEvent e) {
                     fireEditingStopped();
                 }
             });
@@ -110,7 +112,7 @@ public class BackupGUI extends JFrame {
 
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean hasFocus, int row, int column) {
-            setBackground(UIManager.getColor("Button.background"));
+            setBackground(getColor("Button.background"));
             setText((value == null) ? "" : value.toString());
             return this;
         }
@@ -119,26 +121,26 @@ public class BackupGUI extends JFrame {
     public BackupGUI(List<BackupConfig> configs, boolean hideOnClose, double interval,
             boolean startHidden) {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            setLookAndFeel(getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException
                 | UnsupportedLookAndFeelException e) {
         }
         for (String key : new String[] {"Button", "Label", "MenuItem", "TextArea"})
-            UIManager.put(key + ".font", UIManager.getLookAndFeel().getDefaults()
-                    .getFont(key + ".font").deriveFont(12f));
+            put(key + ".font",
+                    getLookAndFeel().getDefaults().getFont(key + ".font").deriveFont(12f));
         try {
-            icon = ImageIO.read(new File(applyWorkingDirectory("./BackupTool.png")));
+            icon = read(new File(applyWorkingDirectory("./BackupTool.png")));
         } catch (IOException e) {
         }
         backupTool = new BackupToolBase();
-        backupTool.setBackupThreads(new ArrayList<BackupThread>());
+        backupTool.setBackupThreads(new ArrayList<>());
         backupTool.setConfigs(configs);
-        backupTool.setConfigsUsed(new ArrayList<BackupConfig>());
-        backupTool.setStopQueue(new ArrayList<UUID>());
+        backupTool.setConfigsUsed(new ArrayList<>());
+        backupTool.setStopQueue(new ArrayList<>());
         this.interval = interval;
         addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent event) {
+            public void windowClosing(WindowEvent e) {
                 toggleShownItem.setText(HIDDEN_LABEL);
                 if (hideOnClose)
                     setVisible(false);
@@ -152,7 +154,7 @@ public class BackupGUI extends JFrame {
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setTitle(TITLE);
         invisibleWindow = new JFrame();
-        invisibleWindow.setType(JFrame.Type.UTILITY);
+        invisibleWindow.setType(UTILITY);
         invisibleWindow.setUndecorated(true);
         invisibleWindow.setOpacity(0f);
         invisibleWindow.addFocusListener(new FocusListener() {
@@ -173,12 +175,12 @@ public class BackupGUI extends JFrame {
 
     public void addToTextArea(String text) {
         textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
-        textArea.getCaret().setDot(Integer.MAX_VALUE);
+        textArea.getCaret().setDot(MAX_VALUE);
     }
 
     public void addTrayIcon() {
         trayMenu = new JPopupMenu();
-        JMenuItem exitItem = new JMenuItem("Exit");
+        JMenuItem exitItem = new JMenuItem(EXIT_LABEL);
         toggleShownItem = new JMenuItem(isVisible() ? SHOWN_LABEL : HIDDEN_LABEL);
         exitItem.addActionListener(new ActionListener() {
             @Override
@@ -202,12 +204,12 @@ public class BackupGUI extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 switch (e.getButton()) {
-                    case MouseEvent.BUTTON1: {
+                    case 1: {
                         toggleShownItem.setText(isVisible() ? HIDDEN_LABEL : SHOWN_LABEL);
                         setVisible(!isVisible());
                         break;
                     }
-                    case MouseEvent.BUTTON3: {
+                    case 3: {
                         invisibleWindow.setVisible(true);
                         trayMenu.setLocation(e.getX(), e.getY() - 50);
                         trayMenu.setVisible(true);
@@ -224,8 +226,8 @@ public class BackupGUI extends JFrame {
     }
 
     public void drawTable(DefaultTableModel tableModel) {
-        Object[][] rows = new Object[backupTool.getConfigs().size()][2];
-        for (int i = 0; i < backupTool.getConfigs().size(); i++) {
+        Object[][] rows = new Object[buttons.length][2];
+        for (int i = 0; i < buttons.length; i++) {
             rows[i][0] = backupTool.getConfigs().get(i).getTitle();
             rows[i][1] = buttons[i].getText();
         }
@@ -244,7 +246,7 @@ public class BackupGUI extends JFrame {
             String label = "";
 
             @Override
-            public boolean shouldSelectCell(EventObject anEvent) {
+            public boolean shouldSelectCell(EventObject e) {
                 return false;
             }
 
@@ -254,7 +256,7 @@ public class BackupGUI extends JFrame {
             }
 
             @Override
-            public boolean isCellEditable(EventObject anEvent) {
+            public boolean isCellEditable(EventObject e) {
                 return false;
             }
 
@@ -281,7 +283,7 @@ public class BackupGUI extends JFrame {
         });
         table.setDefaultRenderer(JButton.class, new ButtonRenderer());
         table.getTableHeader().setUI(null);
-        table.setBackground(UIManager.getColor("Panel.background"));
+        table.setBackground(getColor("Panel.background"));
     }
 
     public void exit() {
@@ -304,8 +306,8 @@ public class BackupGUI extends JFrame {
         drawTable(tableModel);
         scrollPane = new JScrollPane();
         scrollPane.setViewportView(table);
-        add(scrollPane, BorderLayout.CENTER);
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        add(scrollPane, "Center");
+        setDefaultCloseOperation(0);
         textArea = new JTextArea();
         textArea.setColumns(20);
         textArea.setRows(5);
@@ -314,16 +316,11 @@ public class BackupGUI extends JFrame {
         textScrollPane.setViewportView(textArea);
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)
-                .addComponent(textScrollPane, GroupLayout.Alignment.TRAILING));
-        layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 1,
-                                        Short.MAX_VALUE)
-                                .addComponent(textScrollPane, GroupLayout.PREFERRED_SIZE, 1,
-                                        Short.MAX_VALUE)));
+        layout.setHorizontalGroup(layout.createParallelGroup(LEADING)
+                .addComponent(scrollPane, -2, 1, MAX_VALUE).addComponent(textScrollPane, TRAILING));
+        layout.setVerticalGroup(layout.createParallelGroup(LEADING).addGroup(TRAILING,
+                layout.createSequentialGroup().addComponent(scrollPane, -2, 1, MAX_VALUE)
+                        .addComponent(textScrollPane, -2, 1, MAX_VALUE)));
         table.setShowHorizontalLines(false);
         table.setShowVerticalLines(false);
         table.getTableHeader().setReorderingAllowed(false);
@@ -336,13 +333,10 @@ public class BackupGUI extends JFrame {
         }
         int maxTableHeight = (table.getHeight() > (int) (cellHeight * 5) ? (int) (cellHeight * 5)
                 : table.getHeight()) + 5;
-        layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(scrollPane, maxTableHeight, maxTableHeight,
-                                        maxTableHeight)
-                                .addComponent(textScrollPane, GroupLayout.PREFERRED_SIZE, 1,
-                                        Short.MAX_VALUE)));
+        layout.setVerticalGroup(layout.createParallelGroup(LEADING).addGroup(TRAILING,
+                layout.createSequentialGroup()
+                        .addComponent(scrollPane, maxTableHeight, maxTableHeight, maxTableHeight)
+                        .addComponent(textScrollPane, -2, 1, MAX_VALUE)));
     }
 
     public void resetButton(BackupConfig config) {

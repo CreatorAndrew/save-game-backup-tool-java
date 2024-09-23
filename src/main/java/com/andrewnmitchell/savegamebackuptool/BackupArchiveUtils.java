@@ -4,11 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
+import static java.nio.file.Paths.*;
 
 public class BackupArchiveUtils {
     private ArrayList<String> fileList;
@@ -16,7 +16,7 @@ public class BackupArchiveUtils {
 
     public BackupArchiveUtils(String folder) {
         sourceFolder = folder;
-        fileList = new ArrayList<String>();
+        fileList = new ArrayList<>();
     }
 
     public void compress(String zipFile, BackupGUI gui) {
@@ -26,13 +26,13 @@ public class BackupArchiveUtils {
         try {
             fileOutputStream = new FileOutputStream(zipFile);
             zipOutputStream = new ZipOutputStream(fileOutputStream);
-            System.out.print(addToTextArea(
+            print(addToTextArea(
                     "Creating backup archive: " + zipFile.substring(zipFile.lastIndexOf("/") + 1),
                     gui));
-            System.out.println();
+            println();
             FileInputStream fileInputStream = null;
             for (String file : fileList) {
-                System.out.println(addToTextArea("Added " + file, gui));
+                println(addToTextArea("Added " + file, gui));
                 ZipEntry zipEntry = new ZipEntry(file);
                 zipOutputStream.putNextEntry(zipEntry);
                 try {
@@ -46,7 +46,7 @@ public class BackupArchiveUtils {
                 }
             }
             zipOutputStream.closeEntry();
-            System.out.println(addToTextArea("Backup successful", gui));
+            println(addToTextArea("Backup successful", gui));
         } catch (IOException e) {
         } finally {
             try {
@@ -67,7 +67,7 @@ public class BackupArchiveUtils {
     }
 
     private String generateZipEntry(String file) {
-        return file.substring(Paths.get(sourceFolder).toFile().getAbsolutePath().length() + 1,
+        return file.substring(get(sourceFolder).toFile().getAbsolutePath().length() + 1,
                 file.length());
     }
 }

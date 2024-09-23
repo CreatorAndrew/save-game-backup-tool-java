@@ -6,14 +6,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
-import static java.lang.System.getProperty;
+import static java.lang.Long.*;
+import static java.lang.System.*;
+import static java.nio.file.Files.*;
+import static java.nio.file.Paths.*;
 
 class BackupConfigContents {
     private String backupFileNamePrefix;
@@ -73,11 +74,10 @@ class BackupOrSavePath {
 
 
 public class BackupWatchdog {
-    private static Long getModifiedTime(Path savePath) throws IOException {
+    private static long getModifiedTime(Path savePath) throws IOException {
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
         date.setTimeZone(TimeZone.getDefault());
-        return Long
-                .parseLong(date.format(new Date(Files.getLastModifiedTime(savePath).toMillis())));
+        return parseLong(date.format(new Date(getLastModifiedTime(savePath).toMillis())));
     }
 
     public static boolean watchdog(String configFile, BackupGUI gui, boolean usePrompt,
@@ -101,7 +101,7 @@ public class BackupWatchdog {
                     (config.getSearchableSavePaths()[i].getStartsWithUserPath()
                             ? (getProperty("user.home") + "/")
                             : "") + config.getSearchableSavePaths()[i].getPath());
-            if (Files.exists(Paths.get(tempSaveFile))) {
+            if (exists(get(tempSaveFile))) {
                 saveFile = tempSaveFile;
                 break;
             }
@@ -109,10 +109,10 @@ public class BackupWatchdog {
         if (saveFile == null) {
             if (firstRun) {
                 if (gui == null && usePrompt)
-                    System.out.println();
-                System.out.println(addToTextArea("No save file found", gui));
+                    println();
+                println(addToTextArea("No save file found", gui));
                 if (gui == null && usePrompt)
-                    System.out.print(PROMPT);
+                    print(PROMPT);
                 return true;
             }
             // Sometimes on Linux, when Steam launches a Windows game, the Proton prefix path
@@ -122,28 +122,27 @@ public class BackupWatchdog {
         String saveFolder = saveFile.substring(0, saveFile.lastIndexOf("/") + 1);
         BackupArchiveUtils backupArchive = new BackupArchiveUtils(saveFolder);
         backupArchive.generateFileList(new File(saveFolder));
-        if (Files.notExists(Paths.get(backupFolder)))
-            Files.createDirectories(Paths.get(backupFolder));
-        if (getModifiedTime(Paths.get(saveFile)) > config.getLastBackupTime()) {
-            config.setLastBackupTime(getModifiedTime(Paths.get(saveFile)));
+        if (notExists(get(backupFolder)))
+            createDirectories(get(backupFolder));
+        if (getModifiedTime(get(saveFile)) > config.getLastBackupTime()) {
+            config.setLastBackupTime(getModifiedTime(get(saveFile)));
             String backup =
                     config.getBackupFileNamePrefix() + "+" + config.getLastBackupTime() + ".zip";
             if (gui == null && usePrompt)
-                System.out.println();
-            if (Files.notExists(
-                    Paths.get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
+                println();
+            if (notExists(get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup))) {
                 // Create the backup archive file
                 backupArchive.compress(applyWorkingDirectory("./" + backup), gui);
                 if (!backupFolder.equals(applyWorkingDirectory("./")))
-                    Files.move(Paths.get(applyWorkingDirectory("./" + backup)), Paths
-                            .get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
+                    move(get(applyWorkingDirectory("./" + backup)),
+                            get(backupFolder + (backupFolder.endsWith("/") ? "" : "/") + backup));
             } else
-                System.out.println(addToTextArea(backup + " already exists in "
+                println(addToTextArea(backup + " already exists in "
                         + backupFolder.replace("/",
                                 getProperty("os.name").contains("Windows") ? "\\" : "/")
                         + ".\nBackup cancelled", gui));
             if (gui == null && usePrompt)
-                System.out.print(PROMPT);
+                print(PROMPT);
             // Update the JSON file
             FileWriter writer = new FileWriter(configFile);
             writer.write(gson.toJson(gson.toJsonTree(config))

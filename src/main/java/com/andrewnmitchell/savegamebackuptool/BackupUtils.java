@@ -46,4 +46,20 @@ public class BackupUtils {
             files.add(file.toLowerCase());
         return files;
     }
+
+    public static void print() {
+        print("");
+    }
+
+    public static void print(String string) {
+        System.out.print(string);
+    }
+
+    public static void println() {
+        println("");
+    }
+
+    public static void println(String string) {
+        System.out.println(string);
+    }
 }

@@ -1,8 +1,6 @@
 package com.andrewnmitchell.savegamebackuptool;
 
 import com.google.gson.annotations.SerializedName;
-import mslinks.ShellLink;
-import mslinks.ShellLinkException;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,18 +8,22 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+import mslinks.ShellLink;
 import static com.andrewnmitchell.savegamebackuptool.BackupThread.*;
 import static com.andrewnmitchell.savegamebackuptool.BackupUtils.*;
-import static java.lang.System.getProperty;
+import static java.lang.Integer.*;
+import static java.lang.String.*;
+import static java.lang.System.*;
+import static java.nio.file.attribute.PosixFilePermission.*;
+import static java.nio.file.Files.*;
+import static java.nio.file.Paths.*;
+import static java.util.Arrays.*;
+import static java.util.UUID.*;
 
 class MasterConfig {
     @SerializedName("configurations")
@@ -77,25 +79,24 @@ public class BackupTool extends BackupToolBase {
             List<BackupConfig> configs) throws IOException {
         BackupConfig config = null;
         if (configFile == null) {
-            System.out.println("Select one of the following configurations:");
+            println("Select one of the following configurations:");
             for (int i = 0; i < configs.size(); i++)
-                System.out.println("    " + i + ": " + configs.get(i).getTitle());
+                println("    " + i + ": " + configs.get(i).getTitle());
             String choice = null;
             while (choice == null) {
-                System.out.print("Enter in an option number here: ");
+                print("Enter in an option number here: ");
                 choice = input.readLine();
                 try {
-                    if (Integer.parseInt(choice) >= configs.size()
-                            || Integer.parseInt(choice) < 0) {
-                        System.out.println("Not a valid option number. Try again.");
+                    if (parseInt(choice) >= configs.size() || parseInt(choice) < 0) {
+                        println("Not a valid option number. Try again.");
                         choice = null;
                     }
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid input value. Try again with a numeric value.");
+                    println("Invalid input value. Try again with a numeric value.");
                     choice = null;
                 }
             }
-            config = configs.get(Integer.parseInt(choice));
+            config = configs.get(parseInt(choice));
         }
         return config;
     }
@@ -116,41 +117,38 @@ public class BackupTool extends BackupToolBase {
         if (masterConfig.getCreateShortcut()) {
             if (getProperty("os.name").contains("Linux")) {
                 String shortcutPath = getProperty("user.home") + "/.local/share/applications/";
-                FileWriter[] shortcutCreator = {new FileWriter(shortcutPath + ".launchBackupTool"),
-                        new FileWriter(shortcutPath + "BackupTool.desktop")};
-                shortcutCreator[0].write("#!/bin/bash\njava -jar \""
-                        + applyWorkingDirectory("./BackupTool.jar") + "\"\n");
-                shortcutCreator[1].write(String.join("\n", "[Desktop Entry]", "Type=Application",
+                FileWriter launcherWriter = new FileWriter(shortcutPath + ".launchBackupTool");
+                FileWriter shortcutWriter = new FileWriter(shortcutPath + "BackupTool.desktop");
+                launcherWriter.write(join("\n", "#!/bin/bash",
+                        "java -jar \"" + applyWorkingDirectory("./BackupTool.jar") + "\""));
+                shortcutWriter.write(join("\n", "[Desktop Entry]", "Type=Application",
                         "Categories=Game;Utility", "Name=Save Game Backup Tool",
                         "Exec=\"" + shortcutPath + ".launchBackupTool" + "\"",
                         "Icon=" + applyWorkingDirectory("./BackupTool.ico")));
-                shortcutCreator[0].close();
-                shortcutCreator[1].close();
+                launcherWriter.close();
+                shortcutWriter.close();
                 Set<PosixFilePermission> perms = new HashSet<>();
-                perms.add(PosixFilePermission.OWNER_EXECUTE);
-                perms.add(PosixFilePermission.OWNER_READ);
-                perms.add(PosixFilePermission.OWNER_WRITE);
-                Files.setPosixFilePermissions(Paths.get(shortcutPath + ".launchBackupTool"), perms);
-                Files.setPosixFilePermissions(Paths.get(shortcutPath + "BackupTool.desktop"),
-                        perms);
+                perms.add(OWNER_EXECUTE);
+                perms.add(OWNER_READ);
+                perms.add(OWNER_WRITE);
+                setPosixFilePermissions(get(shortcutPath + ".launchBackupTool"), perms);
+                setPosixFilePermissions(get(shortcutPath + "BackupTool.desktop"), perms);
             }
             if (getProperty("os.name").contains("Windows")) {
                 try {
-                    createShortcutAt(System.getenv("APPDATA")
+                    createShortcutAt(getenv("APPDATA")
                             + "/Microsoft/Windows/Start Menu/Programs/Save Game Backup Tool.lnk");
-
                 } catch (IOException e) {
                     createShortcutAt(getProperty("user.home")
                             + "/Start Menu/Programs/Save Game Backup Tool.lnk");
-
                 }
             }
         }
-        setBackupThreads(new ArrayList<BackupThread>());
-        setConfigs(Arrays.asList(masterConfig.getConfigs()));
-        setConfigsUsed(new ArrayList<BackupConfig>());
+        setBackupThreads(new ArrayList<>());
+        setConfigs(asList(masterConfig.getConfigs()));
+        setConfigsUsed(new ArrayList<>());
         for (BackupConfig config : getConfigs())
-            config.setUUID(UUID.randomUUID());
+            config.setUUID(randomUUID());
         String configFile = null;
         boolean skipChoice = false, noGUI = false;
         for (String arg : args)
@@ -175,20 +173,20 @@ public class BackupTool extends BackupToolBase {
                 break;
             }
         if (noGUI) {
-            setStopQueue(new ArrayList<UUID>());
+            setStopQueue(new ArrayList<>());
             if (configFile == null) {
                 boolean continueRunning = true;
-                BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
-                System.out.println("Enter in \"help\" or \"?\" for assistance.");
+                BufferedReader input = new BufferedReader(new InputStreamReader(in));
+                println("Enter in \"help\" or \"?\" for assistance.");
                 while (continueRunning) {
-                    System.out.print(PROMPT);
+                    print(PROMPT);
                     String choice = input.readLine();
                     switch (choice.toLowerCase()) {
                         case "start": {
                             BackupConfig config =
                                     addOrRemoveConfig(input, configFile, getConfigs());
                             if (getConfigsUsed().contains(config))
-                                System.out.println("That configuration is already in use");
+                                println("That configuration is already in use");
                             else
                                 addConfig(this, config, masterConfig.getInterval());
                             break;
@@ -199,7 +197,7 @@ public class BackupTool extends BackupToolBase {
                             if (getConfigsUsed().contains(config))
                                 removeConfig(this, config);
                             else
-                                System.out.println("That configuration was not in use.");
+                                println("That configuration was not in use.");
                             break;
                         }
                         case "end":
@@ -211,15 +209,15 @@ public class BackupTool extends BackupToolBase {
                         }
                         case "help":
                         case "?":
-                            System.out.println(
-                                    "Enter in \"start\" to initialize a backup configuration.\n"
-                                            + "Enter in \"stop\" to suspend a backup configuration.\n"
-                                            + "Enter in \"end\", \"exit\", or \"quit\" to shut down this tool.");
+                            println(join("\n",
+                                    "Enter in \"start\" to initialize a backup configuration.",
+                                    "Enter in \"stop\" to suspend a backup configuration.",
+                                    "Enter in \"end\", \"exit\", or \"quit\" to shut down this tool."));
                             break;
                         case "":
                             break;
                         default:
-                            System.out.println("Invalid command");
+                            println("Invalid command");
                             break;
                     }
                 }
