@@ -74,7 +74,7 @@ class BackupOrSavePath {
 
 
 public class BackupWatchdog {
-    private static long getModifiedTime(Path savePath) throws IOException {
+    public static long getModifiedTime(Path savePath) throws IOException {
         SimpleDateFormat date = new SimpleDateFormat("yyyyMMddHHmmss");
         date.setTimeZone(TimeZone.getDefault());
         return parseLong(date.format(new Date(getLastModifiedTime(savePath).toMillis())));

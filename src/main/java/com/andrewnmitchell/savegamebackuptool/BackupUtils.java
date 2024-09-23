@@ -7,7 +7,7 @@ import java.util.List;
 import static java.lang.System.getProperty;
 
 public class BackupUtils {
-    protected static final String PROMPT = "> ";
+    public static final String PROMPT = "> ";
 
     public static String addToTextArea(String text, BackupGUI gui) {
         if (gui != null)
