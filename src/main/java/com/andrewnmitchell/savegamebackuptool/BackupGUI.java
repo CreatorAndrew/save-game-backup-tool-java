@@ -207,15 +207,6 @@ public class BackupGUI extends JFrame {
         });
         setVisible(!startHidden);
         setLocationRelativeTo(null);
-        addTrayIcon();
-    }
-
-    public void addToTextArea(String text) {
-        textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
-        textArea.getCaret().setDot(MAX_VALUE);
-    }
-
-    public void addTrayIcon() {
         trayMenu = new JPopupMenu();
         JMenuItem exitItem = new JMenuItem(EXIT_LABEL);
         toggleShownItem = new JMenuItem(isVisible() ? SHOWN_LABEL : HIDDEN_LABEL);
@@ -260,6 +251,11 @@ public class BackupGUI extends JFrame {
             systemTray.add(trayIcon);
         } catch (AWTException awtException) {
         }
+    }
+
+    public void addToTextArea(String text) {
+        textArea.append((textArea.getText().isEmpty() ? "" : "\n") + text);
+        textArea.getCaret().setDot(MAX_VALUE);
     }
 
     public void drawTable(DefaultTableModel tableModel) {
