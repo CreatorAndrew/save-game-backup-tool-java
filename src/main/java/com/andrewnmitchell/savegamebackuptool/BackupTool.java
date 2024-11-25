@@ -135,13 +135,16 @@ public class BackupTool extends BackupToolBase {
                 setPosixFilePermissions(get(shortcutPath + "BackupTool.desktop"), perms);
             }
             if (getProperty("os.name").contains("Windows")) {
-                try {
-                    createShortcutAt(getenv("APPDATA")
-                            + "/Microsoft/Windows/Start Menu/Programs/Save Game Backup Tool.lnk");
-                } catch (IOException e) {
-                    createShortcutAt(getProperty("user.home")
-                            + "/Start Menu/Programs/Save Game Backup Tool.lnk");
-                }
+                String shortcutPath = getenv("APPDATA");
+                if (shortcutPath == null)
+                    shortcutPath = getProperty("user.home");
+                else
+                    shortcutPath += "\\Microsoft\\Windows\\";
+                if (shortcutPath.equals("C:\\"))
+                    shortcutPath += "\\Windows\\";
+                createShortcutAt(
+                        (shortcutPath + "\\Start Menu\\Programs\\Save Game Backup Tool.lnk")
+                                .replace("\\\\", "\\"));
             }
         }
         setBackupThreads(new ArrayList<>());
